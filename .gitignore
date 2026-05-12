@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Environnements
+venv/
+.venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Données et artefacts (trop volumineux pour git)
+data/*.png
+data/*.jpg
+data/*.mp4
+data/latents/
+results/
+
+# Jupyter
+.ipynb_checkpoints/
