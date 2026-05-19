@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# Environnements
+# Environments
 venv/
 .venv/
 env/
@@ -14,12 +14,14 @@ env/
 .idea/
 .DS_Store
 
-# Données et artefacts (trop volumineux pour git)
+# Data and artifacts (too large for git)
 data/*.png
 data/*.jpg
 data/*.mp4
 data/latents/
 results/
 
-# Jupyter
+# Jupyter — notebooks .ipynb are auto-generated from .py via jupytext.
+# We only version the .py (clean diffs) and keep the .ipynb local-only.
 .ipynb_checkpoints/
+*.ipynb

@@ -1,0 +1,23 @@
+# Minimal requirements for running the project on blutch (EURECOM cluster).
+# CLI-only — no Jupyter, no jupytext, no interactive notebook tooling.
+
+# Deep learning core
+torch>=2.0
+torchvision
+torchmetrics
+
+# Image I/O
+opencv-python-headless   # headless variant: no X11 deps, smaller, server-friendly
+numpy
+Pillow
+
+# Diffusion model (VAE)
+diffusers>=0.27
+transformers
+accelerate
+huggingface-hub
+safetensors
+
+# Tooling
+tqdm
+matplotlib              # for saving training curves to PNG
