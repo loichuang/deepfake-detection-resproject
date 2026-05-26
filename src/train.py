@@ -35,7 +35,8 @@ FFPP_ROOT = "/medias/db/deepfakes/Faceforensics"
 MANIPULATION = "Deepfakes"
 N_VIDEOS_PER_CLASS_TRAIN = 100
 N_VIDEOS_PER_CLASS_VAL = 30
-BATCH_SIZE = 16
+BATCH_SIZE = 16          # batch for MLP training (latents are small, cheap)
+ENCODE_BATCH_SIZE = 4    # batch for VAE encoding (512x512 images, VRAM-heavy)
 EPOCHS = 30
 LR = 1e-4
 WEIGHT_DECAY = 1e-3      # strong L2 regularisation (overfitting risk is high)
@@ -50,16 +51,27 @@ OUT_DIR.mkdir(exist_ok=True)
 # Helper: encode a whole FFDS dataset into cached latents (Optimisation B)
 # ---------------------------------------------------------------------------
 @torch.no_grad()
-def encode_dataset(ffds: FFDS, encoder: FrozenVAEEncoder, device: str) -> TensorDataset:
+def encode_dataset(
+    ffds: FFDS,
+    encoder: FrozenVAEEncoder,
+    device: str,
+    batch_size: int = ENCODE_BATCH_SIZE,
+) -> TensorDataset:
     """Run every image through the frozen VAE once, return a TensorDataset of
-    (latent, label) pairs kept in memory."""
-    loader = DataLoader(ffds, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
+    (latent, label) pairs kept in memory.
+
+    Uses a small batch_size because encoding 512x512 images through the VAE
+    is VRAM-heavy. Latents are moved to CPU immediately to free GPU memory.
+    """
+    loader = DataLoader(ffds, batch_size=batch_size, shuffle=False, num_workers=2)
     latents, labels = [], []
     for imgs, ys in loader:
         imgs = imgs.to(device)
-        z = encoder(imgs).cpu()        # (B, 4, 64, 64)
+        z = encoder(imgs).cpu()        # (B, 4, 64, 64), moved to CPU right away
         latents.append(z)
         labels.append(ys)
+        if device == "cuda":
+            torch.cuda.empty_cache()   # release intermediate activations
     latents = torch.cat(latents)
     labels = torch.cat(labels)
     print(f"  encoded {latents.shape[0]} samples -> latent shape {tuple(latents.shape[1:])}")
