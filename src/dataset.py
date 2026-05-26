@@ -189,3 +189,50 @@ def build_ffds_split(
     paths: list[str] = [str(p) for p in real_paths] + [str(p) for p in fake_paths]
     labels: list[int] = [0] * len(real_paths) + [1] * len(fake_paths)
     return paths, labels
+
+
+def build_celebdf_test_split(
+    celebdf_root: str | Path,
+    n_frames_per_video: int = 5,
+    testing_list: str = "List_of_testing_videos.txt",
+    seed: int = 42,
+) -> tuple[list[str], list[int]]:
+    """Build (paths, labels) for the OFFICIAL Celeb-DF-v2 test set.
+
+    Reads ``List_of_testing_videos.txt`` to know which videos belong to the
+    official test set, then samples frames from the pre-cropped face images.
+
+    The label is derived from the FOLDER name, NOT from the file's own label
+    column. Celeb-DF uses the opposite convention (1 = real, 0 = fake) in that
+    file, so we ignore it and rely on the directory:
+        - "Celeb-synthesis"            -> fake (label 1)
+        - "Celeb-real" / "YouTube-real" -> real (label 0)
+    This is robust regardless of the txt convention.
+
+    Pre-cropped frames live at:  ``<category>/images/<video_id>/<frame>.png``
+    while the txt lists paths as: ``<category>/<video_id>.mp4``.
+    """
+    celebdf_root = Path(celebdf_root)
+    rng = random.Random(seed)
+    lines = (celebdf_root / testing_list).read_text().strip().splitlines()
+
+    paths: list[str] = []
+    labels: list[int] = []
+    for line in lines:
+        parts = line.split()
+        if len(parts) != 2:
+            continue
+        _, rel_path = parts                      # ignore the txt label column
+        category = rel_path.split("/")[0]        # e.g. "YouTube-real"
+        video_id = Path(rel_path).stem           # e.g. "00170" or "id0_id1_0000"
+        label = 1 if "synthesis" in category.lower() else 0
+
+        frames_dir = celebdf_root / category / "images" / video_id
+        frames = sorted(frames_dir.glob("*.png"))
+        if not frames:
+            continue
+        k = min(n_frames_per_video, len(frames))
+        for f in rng.sample(frames, k=k):
+            paths.append(str(f))
+            labels.append(label)
+    return paths, labels
