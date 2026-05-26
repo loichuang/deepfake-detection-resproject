@@ -21,7 +21,11 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.multiprocessing as mp
 from torch.utils.data import DataLoader, TensorDataset
+
+# Avoid "Too many open files" when DataLoader workers share many tensors.
+mp.set_sharing_strategy("file_system")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -46,6 +50,7 @@ SEED = 42
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 OUT_DIR = Path(__file__).resolve().parent.parent / "results"
 OUT_DIR.mkdir(exist_ok=True)
+CACHE_DIR = Path(__file__).resolve().parent.parent / "data" / "latent_cache"
 
 
 # ---------------------------------------------------------------------------
@@ -77,6 +82,30 @@ def encode_dataset(
     labels = torch.cat(labels)
     print(f"  encoded {latents.shape[0]} samples -> latent shape {tuple(latents.shape[1:])}")
     return TensorDataset(latents, labels)
+
+
+def encode_or_load(
+    ffds: FFDS,
+    encoder: FrozenVAEEncoder,
+    device: str,
+    cache_name: str,
+) -> TensorDataset:
+    """Encode the dataset, or load it from disk cache if already computed.
+
+    The cache key encodes the relevant parameters (split, manipulation,
+    frames, seed) so a stale cache is never reused by mistake. This turns
+    repeated `train.py` runs from ~15 min (re-encoding) into a few seconds.
+    """
+    cache_path = CACHE_DIR / f"{cache_name}.pt"
+    if cache_path.exists():
+        print(f"  loading cached latents from {cache_path}")
+        obj = torch.load(cache_path)
+        return TensorDataset(obj["latents"], obj["labels"])
+    ds = encode_dataset(ffds, encoder, device)
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    torch.save({"latents": ds.tensors[0], "labels": ds.tensors[1]}, cache_path)
+    print(f"  cached latents to {cache_path}")
+    return ds
 
 
 # ---------------------------------------------------------------------------
@@ -128,10 +157,11 @@ def main() -> None:
     # --- Pre-encode all images once (Optimisation B) ----------------------
     print("Loading frozen VAE encoder...")
     encoder = FrozenVAEEncoder().to(DEVICE)
-    print("Pre-encoding train set...")
-    train_ds = encode_dataset(train_ffds, encoder, DEVICE)
-    print("Pre-encoding val set...")
-    val_ds = encode_dataset(val_ffds, encoder, DEVICE)
+    tag = f"{MANIPULATION}_{N_FRAMES_PER_VIDEO}f_seed{SEED}"
+    print("Pre-encoding train set (or loading from cache)...")
+    train_ds = encode_or_load(train_ffds, encoder, DEVICE, f"train_{tag}")
+    print("Pre-encoding val set (or loading from cache)...")
+    val_ds = encode_or_load(val_ffds, encoder, DEVICE, f"val_{tag}")
 
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)

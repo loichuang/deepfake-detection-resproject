@@ -19,6 +19,7 @@ data/*.png
 data/*.jpg
 data/*.mp4
 data/latents/
+data/latent_cache/
 results/
 
 # Jupyter — notebooks .ipynb are auto-generated from .py via jupytext.
