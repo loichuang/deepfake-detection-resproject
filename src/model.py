@@ -19,16 +19,25 @@ SCALING_FACTOR = 0.18215
 
 
 class FrozenVAEEncoder(nn.Module):
-    """Stable Diffusion 1.5 VAE encoder, frozen.
+    """Stable Diffusion 1.4 VAE encoder, frozen.
+
+    We load the VAE from `CompVis/stable-diffusion-v1-4` (subfolder "vae"),
+    which is EXACTLY the encoder used by Wang & Kalogeiton (2024) in their
+    `gen_latent.py` (model == "sd1.4"). This guarantees strict methodological
+    fidelity to the reference paper: same encoder weights, no ambiguity.
 
     All parameters have requires_grad=False and the module is kept in eval()
     mode, so no gradient ever flows back into the VAE. The forward pass is
     wrapped in torch.no_grad() to save memory.
     """
 
-    def __init__(self, pretrained_name: str = "stabilityai/sd-vae-ft-mse") -> None:
+    def __init__(
+        self,
+        pretrained_name: str = "CompVis/stable-diffusion-v1-4",
+        subfolder: str = "vae",
+    ) -> None:
         super().__init__()
-        self.vae = AutoencoderKL.from_pretrained(pretrained_name)
+        self.vae = AutoencoderKL.from_pretrained(pretrained_name, subfolder=subfolder)
         for p in self.vae.parameters():
             p.requires_grad_(False)
         self.vae.eval()
