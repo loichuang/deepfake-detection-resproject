@@ -22,14 +22,15 @@ from torch.utils.data import DataLoader
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dataset import FFDS, build_ffds_split
-from src.model import FrozenVAEEncoder, MLPClassifier
+from src.model import FrozenVAEEncoder, ResNetEncoder, MLPClassifier
 # Reuse helpers from train.py. Importing does NOT trigger training,
 # because train.py guards its entry point with `if __name__ == "__main__"`.
-from src.train import auroc, encode_dataset
+from src.train import auroc, encode_dataset, LDM_DIM
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
+ENCODER_TYPE = "ldm"              # "ldm" or "resnet" — which model to evaluate
 FFPP_ROOT = "/medias/db/deepfakes/Faceforensics"
 MANIPULATION = "Deepfakes"
 SPLIT = "test.json"               # in-domain test set
@@ -37,16 +38,26 @@ N_VIDEOS_PER_CLASS = None         # None = use ALL videos in the split
 N_FRAMES_PER_VIDEO = 5
 SEED = 42
 
-CHECKPOINT = Path(__file__).resolve().parent.parent / "results" / "best_mlp.pt"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 16
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
+
+
+def build_encoder_and_model():
+    """Return (encoder, model, input_dim, checkpoint_path) for ENCODER_TYPE."""
+    if ENCODER_TYPE == "ldm":
+        return FrozenVAEEncoder(), LDM_DIM, RESULTS_DIR / "best_ldm.pt"
+    elif ENCODER_TYPE == "resnet":
+        return ResNetEncoder(), ResNetEncoder.OUTPUT_DIM, RESULTS_DIR / "best_resnet.pt"
+    raise ValueError(f"Unknown ENCODER_TYPE: {ENCODER_TYPE}")
 
 
 def main() -> None:
-    print(f"Device: {DEVICE}")
-    if not CHECKPOINT.exists():
+    print(f"Device: {DEVICE} | encoder: {ENCODER_TYPE}")
+    encoder, input_dim, checkpoint = build_encoder_and_model()
+    if not checkpoint.exists():
         raise FileNotFoundError(
-            f"Checkpoint not found: {CHECKPOINT}. Run `python src/train.py` first."
+            f"Checkpoint not found: {checkpoint}. Train the {ENCODER_TYPE} model first."
         )
 
     # --- Build the held-out test set --------------------------------------
@@ -61,16 +72,16 @@ def main() -> None:
     ffds = FFDS(paths, labels)
     print(f"  test samples: {len(ffds)} (real: {labels.count(0)}, fake: {labels.count(1)})")
 
-    # --- Pre-encode with the frozen VAE -----------------------------------
-    encoder = FrozenVAEEncoder().to(DEVICE)
-    print("Pre-encoding test set...")
+    # --- Pre-encode with the chosen frozen extractor ----------------------
+    encoder = encoder.to(DEVICE)
+    print(f"Pre-encoding test set with {ENCODER_TYPE} encoder...")
     test_ds = encode_dataset(ffds, encoder, DEVICE)
 
     # --- Load the trained MLP ---------------------------------------------
-    model = MLPClassifier().to(DEVICE)
-    model.load_state_dict(torch.load(CHECKPOINT, map_location=DEVICE))
+    model = MLPClassifier(input_dim=input_dim).to(DEVICE)
+    model.load_state_dict(torch.load(checkpoint, map_location=DEVICE))
     model.eval()
-    print(f"Loaded MLP from {CHECKPOINT}")
+    print(f"Loaded MLP from {checkpoint}")
 
     # --- Inference ---------------------------------------------------------
     loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)

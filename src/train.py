@@ -46,6 +46,7 @@ EPOCHS = 30
 LR = 1e-4
 WEIGHT_DECAY = 1e-3      # strong L2 regularisation (overfitting risk is high)
 SEED = 42
+LDM_DIM = 4 * 64 * 64    # 16384 — flattened SD 1.5 latent dimension
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 OUT_DIR = Path(__file__).resolve().parent.parent / "results"
@@ -128,7 +129,92 @@ def auroc(scores: torch.Tensor, targets: torch.Tensor) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Main training routine
+# Reusable training routine — SAME for every feature extractor (LDM, ResNet…)
+# Only `input_dim` and the output names change, so comparisons are fair.
+# ---------------------------------------------------------------------------
+def train_classifier(
+    train_ds: TensorDataset,
+    val_ds: TensorDataset,
+    input_dim: int,
+    ckpt_name: str,
+    curves_name: str,
+) -> float:
+    """Train the shared MLP head on pre-encoded features. Returns best val AUC."""
+    train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
+
+    model = MLPClassifier(input_dim=input_dim).to(DEVICE)
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    print(f"MLP classifier: {sum(p.numel() for p in model.parameters()):,} trainable parameters")
+
+    history = {"epoch": [], "train_loss": [], "train_auc": [], "val_auc": []}
+    best_val_auc = 0.0
+
+    for epoch in range(1, EPOCHS + 1):
+        model.train()
+        train_scores, train_targets, losses = [], [], []
+        for z, y in train_loader:
+            z, y = z.to(DEVICE), y.to(DEVICE).float()
+            logits = model(z)
+            loss = criterion(logits, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            losses.append(loss.item())
+            train_scores.append(torch.sigmoid(logits).detach().cpu())
+            train_targets.append(y.cpu())
+        train_auc = auroc(torch.cat(train_scores), torch.cat(train_targets))
+
+        model.eval()
+        val_scores, val_targets = [], []
+        with torch.no_grad():
+            for z, y in val_loader:
+                z = z.to(DEVICE)
+                logits = model(z)
+                val_scores.append(torch.sigmoid(logits).cpu())
+                val_targets.append(y)
+        val_auc = auroc(torch.cat(val_scores), torch.cat(val_targets))
+
+        mean_loss = sum(losses) / len(losses)
+        history["epoch"].append(epoch)
+        history["train_loss"].append(mean_loss)
+        history["train_auc"].append(train_auc)
+        history["val_auc"].append(val_auc)
+        print(f"Epoch {epoch:>2d} | loss {mean_loss:.4f} | train AUC {train_auc:.4f} | val AUC {val_auc:.4f}")
+
+        if val_auc > best_val_auc:
+            best_val_auc = val_auc
+            torch.save(model.state_dict(), OUT_DIR / f"{ckpt_name}.pt")
+
+    print(f"\nBest val AUC: {best_val_auc:.4f}")
+    print(f"Best model saved to {OUT_DIR / f'{ckpt_name}.pt'}")
+
+    # Save training curves (headless backend, no display on blutch).
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+        ax[0].plot(history["epoch"], history["train_loss"])
+        ax[0].set_xlabel("epoch"); ax[0].set_ylabel("BCE loss"); ax[0].set_title("Training loss")
+        ax[1].plot(history["epoch"], history["train_auc"], label="train AUC")
+        ax[1].plot(history["epoch"], history["val_auc"], label="val AUC")
+        ax[1].axhline(0.5, color="grey", linestyle=":", linewidth=0.8)
+        ax[1].set_xlabel("epoch"); ax[1].set_ylabel("AUC"); ax[1].set_ylim(0.4, 1.02)
+        ax[1].legend(); ax[1].set_title("AUROC (train vs val)")
+        fig.tight_layout()
+        fig.savefig(OUT_DIR / f"{curves_name}.png", dpi=150)
+        print(f"Curves saved to {OUT_DIR / f'{curves_name}.png'}")
+    except ImportError:
+        print("matplotlib not available, skipping curves.")
+
+    return best_val_auc
+
+
+# ---------------------------------------------------------------------------
+# Main — LDM encoder variant
 # ---------------------------------------------------------------------------
 def main() -> None:
     torch.manual_seed(SEED)
@@ -163,81 +249,13 @@ def main() -> None:
     print("Pre-encoding val set (or loading from cache)...")
     val_ds = encode_or_load(val_ffds, encoder, DEVICE, f"val_{tag}")
 
-    train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
-
-    # --- Model, loss, optimiser -------------------------------------------
-    model = MLPClassifier().to(DEVICE)
-    criterion = nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
-
-    n_params = sum(p.numel() for p in model.parameters())
-    print(f"MLP classifier: {n_params:,} trainable parameters")
-
-    # --- Training loop -----------------------------------------------------
-    history = {"epoch": [], "train_loss": [], "train_auc": [], "val_auc": []}
-    best_val_auc = 0.0
-
-    for epoch in range(1, EPOCHS + 1):
-        model.train()
-        train_scores, train_targets, losses = [], [], []
-        for z, y in train_loader:
-            z, y = z.to(DEVICE), y.to(DEVICE).float()
-            logits = model(z)
-            loss = criterion(logits, y)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            losses.append(loss.item())
-            train_scores.append(torch.sigmoid(logits).detach().cpu())
-            train_targets.append(y.cpu())
-
-        train_auc = auroc(torch.cat(train_scores), torch.cat(train_targets))
-
-        # Validation
-        model.eval()
-        val_scores, val_targets = [], []
-        with torch.no_grad():
-            for z, y in val_loader:
-                z = z.to(DEVICE)
-                logits = model(z)
-                val_scores.append(torch.sigmoid(logits).cpu())
-                val_targets.append(y)
-        val_auc = auroc(torch.cat(val_scores), torch.cat(val_targets))
-
-        mean_loss = sum(losses) / len(losses)
-        history["epoch"].append(epoch)
-        history["train_loss"].append(mean_loss)
-        history["train_auc"].append(train_auc)
-        history["val_auc"].append(val_auc)
-        print(f"Epoch {epoch:>2d} | loss {mean_loss:.4f} | train AUC {train_auc:.4f} | val AUC {val_auc:.4f}")
-
-        if val_auc > best_val_auc:
-            best_val_auc = val_auc
-            torch.save(model.state_dict(), OUT_DIR / "best_mlp.pt")
-
-    print(f"\nBest val AUC: {best_val_auc:.4f}")
-    print(f"Best model saved to {OUT_DIR / 'best_mlp.pt'}")
-
-    # --- Save training curves ---------------------------------------------
-    try:
-        import matplotlib
-        matplotlib.use("Agg")  # headless backend (no display on blutch)
-        import matplotlib.pyplot as plt
-
-        fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-        ax[0].plot(history["epoch"], history["train_loss"])
-        ax[0].set_xlabel("epoch"); ax[0].set_ylabel("BCE loss"); ax[0].set_title("Training loss")
-        ax[1].plot(history["epoch"], history["train_auc"], label="train AUC")
-        ax[1].plot(history["epoch"], history["val_auc"], label="val AUC")
-        ax[1].axhline(0.5, color="grey", linestyle=":", linewidth=0.8)
-        ax[1].set_xlabel("epoch"); ax[1].set_ylabel("AUC"); ax[1].set_ylim(0.4, 1.02)
-        ax[1].legend(); ax[1].set_title("AUROC (train vs val)")
-        fig.tight_layout()
-        fig.savefig(OUT_DIR / "training_curves.png", dpi=150)
-        print(f"Curves saved to {OUT_DIR / 'training_curves.png'}")
-    except ImportError:
-        print("matplotlib not available, skipping curves.")
+    # --- Train the shared MLP head on the LDM latents ---------------------
+    train_classifier(
+        train_ds, val_ds,
+        input_dim=LDM_DIM,
+        ckpt_name="best_ldm",
+        curves_name="curves_ldm",
+    )
 
 
 if __name__ == "__main__":

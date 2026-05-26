@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from diffusers import AutoencoderKL
 
 # Canonical Stable Diffusion 1.5 latent scaling factor.
@@ -54,65 +55,91 @@ class FrozenVAEEncoder(nn.Module):
         return self
 
 
+class ResNetEncoder(nn.Module):
+    """ImageNet-pretrained ResNet-50, frozen, used as a feature extractor.
+
+    Returns the 2048-dim global-average-pooled vector (the representation just
+    before ResNet's classification head). This is the COMPARISON BASELINE
+    against the LDM encoder: the downstream MLP is identical, only the feature
+    extractor changes — so we can isolate whether the diffusion encoder
+    captures manipulation traces better or worse than a standard ResNet.
+
+    Input convention: images arrive as (B, 3, 512, 512) in [-1, 1] (the same
+    FFDS output used by the VAE). We convert them to ImageNet normalization and
+    resize to 224x224 (ResNet's native resolution) before extracting features.
+    """
+
+    OUTPUT_DIM = 2048
+
+    def __init__(self) -> None:
+        super().__init__()
+        from torchvision.models import resnet50, ResNet50_Weights
+
+        backbone = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
+        # Drop the final FC layer; keep everything up to the global avg pool.
+        self.features = nn.Sequential(*list(backbone.children())[:-1])
+        for p in self.features.parameters():
+            p.requires_grad_(False)
+        self.features.eval()
+
+        # ImageNet normalization constants (registered as buffers so .to(device) moves them).
+        self.register_buffer("mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
+        self.register_buffer("std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
+
+    @torch.no_grad()
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Image (B, 3, 512, 512) in [-1, 1] -> features (B, 2048)."""
+        x = (x + 1.0) / 2.0                                    # [-1, 1] -> [0, 1]
+        x = (x - self.mean) / self.std                         # ImageNet normalize
+        x = F.interpolate(x, size=224, mode="bilinear", align_corners=False)
+        feat = self.features(x)                                # (B, 2048, 1, 1)
+        return feat.flatten(1)                                 # (B, 2048)
+
+    def train(self, mode: bool = True) -> "ResNetEncoder":
+        super().train(mode)
+        self.features.eval()
+        return self
+
+
 class MLPClassifier(nn.Module):
-    """3-layer MLP head on the flattened latent.
+    """3-layer MLP head on a flattened feature vector.
 
-    Architecture:
-        flatten(z) [in_channels * spatial^2]   (16384 for 4x64x64)
-          -> Linear -> BatchNorm -> ReLU -> Dropout      (layer 1)
-          -> Linear -> BatchNorm -> ReLU -> Dropout      (layer 2)
-          -> Linear -> logit                             (layer 3, output)
+    Architecture (identical to the comparison baseline used by the teammate,
+    so that the LDM-vs-ResNet comparison is fair — only the upstream extractor
+    differs):
 
-    The output is a single real-valued logit per sample (not yet a probability;
-    apply sigmoid for that). We use BCEWithLogitsLoss downstream, which expects
-    raw logits for numerical stability.
+        flatten(x) [input_dim]
+          -> Linear(512) -> ReLU -> Dropout
+          -> Linear(128) -> ReLU
+          -> Linear(1)   -> logit
+
+    The same head serves both feature extractors:
+      - LDM encoder latent : input_dim = 4 * 64 * 64 = 16384
+      - ResNet-50 features  : input_dim = 2048
+
+    The output is a single raw logit per sample (apply sigmoid for a
+    probability). Used with BCEWithLogitsLoss downstream.
 
     Parameters
     ----------
-    in_channels : int
-        Latent channel count (4 for SD 1.5).
-    spatial : int
-        Latent spatial size (64 for a 512x512 input image).
-    hidden : tuple[int, int]
-        Sizes of the two hidden layers. Default (512, 128).
+    input_dim : int
+        Size of the flattened feature vector fed to the MLP.
     dropout : float
-        Dropout probability after each hidden activation. High by default
-        (0.3) because the input is very high-dimensional relative to the
-        number of training samples.
+        Dropout probability after the first hidden activation (default 0.3).
     """
 
-    def __init__(
-        self,
-        in_channels: int = 4,
-        spatial: int = 64,
-        hidden: tuple[int, int] = (512, 128),
-        dropout: float = 0.3,
-    ) -> None:
+    def __init__(self, input_dim: int, dropout: float = 0.3) -> None:
         super().__init__()
-        in_features = in_channels * spatial * spatial  # 16384
-        h1, h2 = hidden
-
         self.net = nn.Sequential(
-            nn.Flatten(),               # (B, 4, 64, 64) -> (B, 16384)
-            nn.Linear(in_features, h1),  # layer 1
-            nn.BatchNorm1d(h1),
+            nn.Flatten(),                 # accepts (B, C, H, W) or (B, D)
+            nn.Linear(input_dim, 512),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(h1, h2),           # layer 2
-            nn.BatchNorm1d(h2),
+            nn.Linear(512, 128),
             nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(h2, 1),            # layer 3 (output logit)
+            nn.Linear(128, 1),
         )
-        self._init_weights()
 
-    def _init_weights(self) -> None:
-        for m in self.net.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
-                if m.bias is not None:
-                    nn.init.zeros_(m.bias)
-
-    def forward(self, z: torch.Tensor) -> torch.Tensor:
-        """Latent (B, 4, 64, 64) -> logit (B,)."""
-        return self.net(z).squeeze(-1)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Feature tensor -> logit (B,)."""
+        return self.net(x).squeeze(-1)
