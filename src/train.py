@@ -33,9 +33,10 @@ from src.model import FrozenVAEEncoder, MLPClassifier
 # ---------------------------------------------------------------------------
 FFPP_ROOT = "/medias/db/deepfakes/Faceforensics"
 MANIPULATION = "Deepfakes"
-N_VIDEOS_PER_CLASS_TRAIN = 100
-N_VIDEOS_PER_CLASS_VAL = 30
-BATCH_SIZE = 16          # batch for MLP training (latents are small, cheap)
+N_VIDEOS_PER_CLASS_TRAIN = None   # None = use ALL videos in train.json
+N_VIDEOS_PER_CLASS_VAL = None     # None = use ALL videos in val.json
+N_FRAMES_PER_VIDEO = 5            # 5 frames/video ≈ 10k images, kills overfitting
+BATCH_SIZE = 64          # batch for MLP training (latents are small, cheap)
 ENCODE_BATCH_SIZE = 4    # batch for VAE encoding (512x512 images, VRAM-heavy)
 EPOCHS = 30
 LR = 1e-4
@@ -107,10 +108,18 @@ def main() -> None:
     # --- Build datasets from the official splits --------------------------
     print("Building datasets from official FF++ splits...")
     train_paths, train_labels = build_ffds_split(
-        FFPP_ROOT, "train.json", N_VIDEOS_PER_CLASS_TRAIN, MANIPULATION, seed=SEED
+        FFPP_ROOT, "train.json",
+        n_videos_per_class=N_VIDEOS_PER_CLASS_TRAIN,
+        n_frames_per_video=N_FRAMES_PER_VIDEO,
+        manipulation=MANIPULATION,
+        seed=SEED,
     )
     val_paths, val_labels = build_ffds_split(
-        FFPP_ROOT, "val.json", N_VIDEOS_PER_CLASS_VAL, MANIPULATION, seed=SEED
+        FFPP_ROOT, "val.json",
+        n_videos_per_class=N_VIDEOS_PER_CLASS_VAL,
+        n_frames_per_video=N_FRAMES_PER_VIDEO,
+        manipulation=MANIPULATION,
+        seed=SEED,
     )
     train_ffds = FFDS(train_paths, train_labels)
     val_ffds = FFDS(val_paths, val_labels)

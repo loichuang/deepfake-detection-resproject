@@ -33,7 +33,8 @@ from src.train import auroc, encode_dataset
 FFPP_ROOT = "/medias/db/deepfakes/Faceforensics"
 MANIPULATION = "Deepfakes"
 SPLIT = "test.json"               # in-domain test set
-N_VIDEOS_PER_CLASS = 100
+N_VIDEOS_PER_CLASS = None         # None = use ALL videos in the split
+N_FRAMES_PER_VIDEO = 5
 SEED = 42
 
 CHECKPOINT = Path(__file__).resolve().parent.parent / "results" / "best_mlp.pt"
@@ -51,7 +52,11 @@ def main() -> None:
     # --- Build the held-out test set --------------------------------------
     print(f"Building test split ({SPLIT})...")
     paths, labels = build_ffds_split(
-        FFPP_ROOT, SPLIT, N_VIDEOS_PER_CLASS, MANIPULATION, seed=SEED
+        FFPP_ROOT, SPLIT,
+        n_videos_per_class=N_VIDEOS_PER_CLASS,
+        n_frames_per_video=N_FRAMES_PER_VIDEO,
+        manipulation=MANIPULATION,
+        seed=SEED,
     )
     ffds = FFDS(paths, labels)
     print(f"  test samples: {len(ffds)} (real: {labels.count(0)}, fake: {labels.count(1)})")

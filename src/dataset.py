@@ -122,42 +122,54 @@ def list_video_dirs_from_split(
     return real_dirs, fake_dirs
 
 
-def sample_one_frame_per_video(
+def sample_n_frames_per_video(
     video_dirs: Sequence[Path],
     rng: random.Random,
+    n_frames: int = 5,
 ) -> list[Path]:
-    """For each video folder, pick a single frame at random.
+    """For each video folder, pick ``n_frames`` distinct frames at random.
 
     Frames are expected to be ``.png`` files inside ``video_dir``.
+    If a folder has fewer than ``n_frames`` frames, all of them are taken.
     Folders containing zero frames are silently skipped.
+
+    Sampling several frames per video (instead of one) is the main lever
+    against overfitting: it multiplies the dataset size while keeping the
+    identity-disjoint split guarantee (all frames of a video share its split).
     """
     chosen: list[Path] = []
     for video_dir in video_dirs:
         frames = sorted(video_dir.glob("*.png"))
-        if frames:
-            chosen.append(rng.choice(frames))
+        if not frames:
+            continue
+        k = min(n_frames, len(frames))
+        chosen.extend(rng.sample(frames, k=k))
     return chosen
 
 
 def build_ffds_split(
     ffpp_root: str | Path,
     split_json: str,
-    n_videos_per_class: int = 100,
+    n_videos_per_class: int | None = None,
+    n_frames_per_video: int = 5,
     manipulation: str = "Deepfakes",
     compression: str = "c23",
     seed: int = 42,
 ) -> tuple[list[str], list[int]]:
     """End-to-end helper: from an official split file to (paths, labels).
 
-    Reads the split JSON, limits the number of videos per class for tractable
-    experiments, samples exactly one frame per video, and concatenates the
+    Reads the split JSON, optionally limits the number of videos per class,
+    samples ``n_frames_per_video`` frames per video, and concatenates the
     result into the (paths, labels) pair expected by ``FFDS``.
 
     Parameters
     ----------
-    n_videos_per_class : int
-        Maximum number of real videos AND maximum number of fake videos kept.
-        Default 100 yields a fast tractable dataset for a first experiment.
+    n_videos_per_class : int | None
+        Maximum number of real videos AND fake videos kept. ``None`` (default)
+        means use ALL videos in the split. Set to a small int for quick tests.
+    n_frames_per_video : int
+        Number of distinct random frames sampled per video (default 5). The
+        primary lever against overfitting — more frames means more samples.
     seed : int
         Random seed for reproducibility (used for both video sub-sampling
         and frame selection inside each video).
@@ -167,11 +179,12 @@ def build_ffds_split(
         ffpp_root, split_json, manipulation, compression
     )
 
-    real_dirs = rng.sample(real_dirs, k=min(n_videos_per_class, len(real_dirs)))
-    fake_dirs = rng.sample(fake_dirs, k=min(n_videos_per_class, len(fake_dirs)))
+    if n_videos_per_class is not None:
+        real_dirs = rng.sample(real_dirs, k=min(n_videos_per_class, len(real_dirs)))
+        fake_dirs = rng.sample(fake_dirs, k=min(n_videos_per_class, len(fake_dirs)))
 
-    real_paths = sample_one_frame_per_video(real_dirs, rng)
-    fake_paths = sample_one_frame_per_video(fake_dirs, rng)
+    real_paths = sample_n_frames_per_video(real_dirs, rng, n_frames_per_video)
+    fake_paths = sample_n_frames_per_video(fake_dirs, rng, n_frames_per_video)
 
     paths: list[str] = [str(p) for p in real_paths] + [str(p) for p in fake_paths]
     labels: list[int] = [0] * len(real_paths) + [1] * len(fake_paths)
