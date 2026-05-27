@@ -20,7 +20,13 @@ data/*.jpg
 data/*.mp4
 data/latents/
 data/latent_cache/
-results/
+
+# Model checkpoints — heavy, ignored everywhere.
+# But we KEEP result figures (results/*.png) and tables (results/*.txt, *.csv)
+# so they can be versioned and dropped into the slides.
+*.pt
+*.pth
+*.ckpt
 
 # Jupyter — notebooks .ipynb are auto-generated from .py via jupytext.
 # We only version the .py (clean diffs) and keep the .ipynb local-only.
