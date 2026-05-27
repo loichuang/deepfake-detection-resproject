@@ -1,0 +1,6 @@
+AUC with 95% video-level bootstrap CI
+==================================================
+LDM encoder  FF++ test   0.870  [0.835, 0.903]
+LDM encoder  Celeb-DF    0.515  [0.471, 0.559]
+ResNet-50    FF++ test   0.779  [0.734, 0.822]
+ResNet-50    Celeb-DF    0.536  [0.490, 0.577]
