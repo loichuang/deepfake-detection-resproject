@@ -70,7 +70,13 @@ class TrainableVAEEncoder(nn.Module):
     ) -> None:
         super().__init__()
         self.vae = AutoencoderKL.from_pretrained(pretrained_name, subfolder=subfolder)
-        # Pas de requires_grad_(False) : tous les paramètres restent entraînables.
+        # On n'utilise que l'encodeur : le décodeur est figé pour économiser
+        # VRAM et mémoire optimizer (AdamW stocke 2 moments par paramètre).
+        self.vae.decoder.requires_grad_(False)
+        # Gradient checkpointing : recompute activations during backward instead
+        # of storing them all → divise la VRAM ~2-3× au prix de +30% compute.
+        # Nécessaire pour backprop à travers 83M params sur des images 512×512.
+        self.vae.enable_gradient_checkpointing()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Image (B, 3, 512, 512) in [-1, 1] -> latent (B, 4, 64, 64)."""
