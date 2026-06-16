@@ -126,8 +126,8 @@ def main() -> None:
             scaler.update()
 
             losses.append(loss.item())
-            train_scores.append(torch.sigmoid(logits).detach().cpu())
-            train_targets.append(ys.cpu())
+            train_scores.append(torch.sigmoid(logits.float()).detach().cpu())
+            train_targets.append(ys.float().cpu())
 
         train_auc = auroc(torch.cat(train_scores), torch.cat(train_targets))
 
@@ -142,8 +142,8 @@ def main() -> None:
                 with autocast(enabled=use_amp):
                     z      = encoder(imgs).flatten(1)
                     logits = mlp(z)
-                val_scores.append(torch.sigmoid(logits).cpu())
-                val_targets.append(ys)
+                val_scores.append(torch.sigmoid(logits.float()).cpu())
+                val_targets.append(ys.float())
 
         val_auc = auroc(torch.cat(val_scores), torch.cat(val_targets))
         mean_loss = sum(losses) / len(losses)
