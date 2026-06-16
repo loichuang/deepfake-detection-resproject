@@ -15,6 +15,7 @@ Run depuis la racine du projet sur blutch :
 
 from __future__ import annotations
 
+import csv
 import sys
 from pathlib import Path
 
@@ -105,6 +106,12 @@ def main() -> None:
 
     best_val_auc = 0.0
 
+    # Historique CSV : epoch, loss, train_auc, val_auc
+    history_path = OUT_DIR / "train_ldm_finetune_history.csv"
+    with open(history_path, "w", newline="") as f:
+        csv.writer(f).writerow(["epoch", "loss", "train_auc", "val_auc"])
+    print(f"History log: {history_path}")
+
     for epoch in range(1, EPOCHS + 1):
         # --- TRAIN ----------------------------------------------------------
         encoder.train()
@@ -154,6 +161,8 @@ def main() -> None:
             f"train AUC {train_auc:.4f} | "
             f"val AUC {val_auc:.4f}"
         )
+        with open(history_path, "a", newline="") as f:
+            csv.writer(f).writerow([epoch, f"{mean_loss:.4f}", f"{train_auc:.4f}", f"{val_auc:.4f}"])
 
         if val_auc > best_val_auc:
             best_val_auc = val_auc

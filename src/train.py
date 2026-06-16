@@ -16,6 +16,7 @@ Run from the project root on blutch:
 
 from __future__ import annotations
 
+import csv
 import sys
 from pathlib import Path
 
@@ -151,6 +152,11 @@ def train_classifier(
     history = {"epoch": [], "train_loss": [], "train_auc": [], "val_auc": []}
     best_val_auc = 0.0
 
+    history_path = OUT_DIR / f"history_{ckpt_name}.csv"
+    with open(history_path, "w", newline="") as f:
+        csv.writer(f).writerow(["epoch", "loss", "train_auc", "val_auc"])
+    print(f"History log: {history_path}")
+
     for epoch in range(1, EPOCHS + 1):
         model.train()
         train_scores, train_targets, losses = [], [], []
@@ -182,6 +188,8 @@ def train_classifier(
         history["train_auc"].append(train_auc)
         history["val_auc"].append(val_auc)
         print(f"Epoch {epoch:>2d} | loss {mean_loss:.4f} | train AUC {train_auc:.4f} | val AUC {val_auc:.4f}")
+        with open(history_path, "a", newline="") as f:
+            csv.writer(f).writerow([epoch, f"{mean_loss:.4f}", f"{train_auc:.4f}", f"{val_auc:.4f}"])
 
         if val_auc > best_val_auc:
             best_val_auc = val_auc
