@@ -21,6 +21,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.multiprocessing as mp
+from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 
 mp.set_sharing_strategy("file_system")
@@ -37,10 +38,12 @@ from src.train import auroc   # réutilise la même fonction AUROC, pas de re-tr
 FFPP_ROOT            = "/medias/db/deepfakes/Faceforensics"
 MANIPULATION         = "Deepfakes"
 N_FRAMES_PER_VIDEO   = 5
-BATCH_SIZE           = 4        # petit : gradients VAE coûteux en VRAM
+BATCH_SIZE           = 16       # AMP (fp16) permet de monter à 16 sans OOM
 EPOCHS               = 20
-LR_ENCODER           = 1e-5    # LR bas pour le backbone (éviter catastrophic forgetting)
-LR_MLP               = 1e-4    # LR normal pour la tête
+# Linear scaling rule (Goyal et al. 2017) : batch ×4 → LR ×4
+# Compense la réduction du nombre de gradient steps (9k vs 36k avec batch=4).
+LR_ENCODER           = 4e-5    # 1e-5 × 4
+LR_MLP               = 4e-4    # 1e-4 × 4
 WEIGHT_DECAY         = 1e-3
 SEED                 = 42
 LDM_DIM              = 4 * 64 * 64   # 16384
@@ -98,6 +101,10 @@ def main() -> None:
         {"params": mlp.parameters(),     "lr": LR_MLP},
     ], weight_decay=WEIGHT_DECAY)
 
+    # AMP : réduit la VRAM ~2× et accélère les opérations matricielles sur GPU.
+    use_amp = (DEVICE == "cuda")
+    scaler  = GradScaler(enabled=use_amp)
+
     best_val_auc = 0.0
 
     for epoch in range(1, EPOCHS + 1):
@@ -111,18 +118,18 @@ def main() -> None:
             ys   = ys.to(DEVICE).float()
 
             optimizer.zero_grad()
-            z      = encoder(imgs).flatten(1)   # (B, 16384)
-            logits = mlp(z)
-            loss   = criterion(logits, ys)
-            loss.backward()
-            optimizer.step()
+            with autocast(enabled=use_amp):
+                z      = encoder(imgs).flatten(1)   # (B, 16384)
+                logits = mlp(z)
+                loss   = criterion(logits, ys)
+
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             losses.append(loss.item())
             train_scores.append(torch.sigmoid(logits).detach().cpu())
             train_targets.append(ys.cpu())
-
-            if DEVICE == "cuda":
-                torch.cuda.empty_cache()
 
         train_auc = auroc(torch.cat(train_scores), torch.cat(train_targets))
 
@@ -134,8 +141,9 @@ def main() -> None:
         with torch.no_grad():
             for imgs, ys in val_loader:
                 imgs = imgs.to(DEVICE)
-                z      = encoder(imgs).flatten(1)
-                logits = mlp(z)
+                with autocast(enabled=use_amp):
+                    z      = encoder(imgs).flatten(1)
+                    logits = mlp(z)
                 val_scores.append(torch.sigmoid(logits).cpu())
                 val_targets.append(ys)
 
