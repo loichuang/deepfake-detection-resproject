@@ -38,12 +38,10 @@ from src.train import auroc   # réutilise la même fonction AUROC, pas de re-tr
 FFPP_ROOT            = "/medias/db/deepfakes/Faceforensics"
 MANIPULATION         = "Deepfakes"
 N_FRAMES_PER_VIDEO   = 5
-BATCH_SIZE           = 16       # AMP (fp16) permet de monter à 16 sans OOM
+BATCH_SIZE           = 4        # VAE encoder gradients très coûteux en VRAM à 512×512
 EPOCHS               = 20
-# Linear scaling rule (Goyal et al. 2017) : batch ×4 → LR ×4
-# Compense la réduction du nombre de gradient steps (9k vs 36k avec batch=4).
-LR_ENCODER           = 4e-5    # 1e-5 × 4
-LR_MLP               = 4e-4    # 1e-4 × 4
+LR_ENCODER           = 1e-5    # LR bas pour le backbone (éviter catastrophic forgetting)
+LR_MLP               = 1e-4    # LR normal pour la tête
 WEIGHT_DECAY         = 1e-3
 SEED                 = 42
 LDM_DIM              = 4 * 64 * 64   # 16384
