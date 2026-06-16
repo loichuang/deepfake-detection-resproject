@@ -1,11 +1,10 @@
 """Model components for encoder-only deepfake detection.
 
-Two pieces, matching the supervisor's whiteboard:
-  - FrozenVAEEncoder : the SD 1.5 VAE encoder, frozen (no gradients).
-                       Maps an image (B, 3, 512, 512) to a latent (B, 4, 64, 64).
-  - MLPClassifier    : a 3-layer MLP on the flattened latent -> binary logit.
-
-Only the MLP is trained; the encoder is a fixed feature extractor.
+Three encoders + one shared MLP head:
+  - FrozenVAEEncoder    : SD 1.4 VAE encoder, frozen (no gradients).
+  - TrainableVAEEncoder : SD 1.4 VAE encoder, fine-tunable (gradients activés).
+  - ResNetEncoder       : ResNet-50 ImageNet, frozen, baseline.
+  - MLPClassifier       : 3-layer MLP, tête partagée par tous les encodeurs.
 """
 
 from __future__ import annotations
@@ -53,6 +52,29 @@ class FrozenVAEEncoder(nn.Module):
         super().train(mode)
         self.vae.eval()
         return self
+
+
+class TrainableVAEEncoder(nn.Module):
+    """SD 1.4 VAE encoder, fine-tunable (gradients activés).
+
+    Identique à FrozenVAEEncoder SAUF que les paramètres sont entraînables
+    et le forward n'est pas wrappé dans torch.no_grad(). Utilisé pour
+    l'ablation frozen vs fine-tuned : même backbone SD 1.4, même MLP,
+    seul le régime d'entraînement change.
+    """
+
+    def __init__(
+        self,
+        pretrained_name: str = "CompVis/stable-diffusion-v1-4",
+        subfolder: str = "vae",
+    ) -> None:
+        super().__init__()
+        self.vae = AutoencoderKL.from_pretrained(pretrained_name, subfolder=subfolder)
+        # Pas de requires_grad_(False) : tous les paramètres restent entraînables.
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Image (B, 3, 512, 512) in [-1, 1] -> latent (B, 4, 64, 64)."""
+        return self.vae.encode(x).latent_dist.mean * SCALING_FACTOR
 
 
 class ResNetEncoder(nn.Module):

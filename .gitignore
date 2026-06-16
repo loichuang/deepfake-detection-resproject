@@ -32,3 +32,13 @@ data/latent_cache/
 # We only version the .py (clean diffs) and keep the .ipynb local-only.
 .ipynb_checkpoints/
 *.ipynb
+
+# LaTeX build artifacts (keep .tex and .pdf, drop the rest)
+*.aux
+*.nav
+*.snm
+*.toc
+*.vrb
+*.out
+presentation/*.log
+presentation/qa-*.jpg

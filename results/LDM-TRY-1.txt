@@ -1,0 +1,192 @@
+1. train_ffds_ldm_try_1.py
+4-blutch$ /medias/db/ImagingSecurity_misc/zengw/miniconda3/envs/myenv/bin/python train_ffds_ldm.py
+==========Using device: cuda==========
+TRAIN Dataset loaded. Total frames: 4314
+VAL Dataset loaded. Total frames: 840
+
+Loading Latent Diffusion Model (Stable Diffusion v1.5)...
+model_index.json: 100%|███████████████████████████████████████████████████████████████████████████████████████████| 541/541 [00:00<00:00, 1.12MB/s]
+(…)ature_extractor/preprocessor_config.json: 100%|█████████████████████████████████████████████████████████████████| 342/342 [00:00<00:00, 509kB/s]
+safety_checker/config.json: 4.72kB [00:00, 2.53MB/s]                                                                     | 0.00/342 [00:00<?, ?B/s]
+tokenizer/special_tokens_map.json: 100%|███████████████████████████████████████████████████████████████████████████| 472/472 [00:00<00:00, 148kB/s]
+scheduler/scheduler_config.json: 100%|█████████████████████████████████████████████████████████████████████████████| 308/308 [00:00<00:00, 129kB/s]
+text_encoder/config.json: 100%|████████████████████████████████████████████████████████████████████████████████████| 617/617 [00:00<00:00, 271kB/s]
+tokenizer/merges.txt: 525kB [00:00, 15.0MB/s]                                                                       | 1/15 [00:00<00:05,  2.37it/s]
+tokenizer/tokenizer_config.json: 100%|████████████████████████████████████████████████████████████████████████████| 806/806 [00:00<00:00, 3.11MB/s]
+unet/config.json: 100%|███████████████████████████████████████████████████████████████████████████████████████████| 743/743 [00:00<00:00, 2.86MB/s]
+vae/config.json: 100%|█████████████████████████████████████████████████████████████████████████████████████████████| 547/547 [00:00<00:00, 588kB/s]
+tokenizer/vocab.json: 1.06MB [00:00, 17.9MB/s]                                                                 | 10.5M/492M [00:00<00:12, 40.0MB/s]
+vae/diffusion_pytorch_model.safetensors: 100%|██████████████████████████████████████████████████████████████████| 335M/335M [00:07<00:00, 42.6MB/s]
+text_encoder/model.safetensors: 100%|███████████████████████████████████████████████████████████████████████████| 492M/492M [00:27<00:00, 17.9MB/s]
+safety_checker/model.safetensors: 100%|███████████████████████████████████████████████████████████████████████| 1.22G/1.22G [00:35<00:00, 34.1MB/s]
+unet/diffusion_pytorch_model.safetensors: 100%|███████████████████████████████████████████████████████████████| 3.44G/3.44G [00:58<00:00, 58.5MB/s]
+Fetching 15 files: 100%|███████████████████████████████████████████████████████████████████████████████████████████| 15/15 [01:17<00:00,  5.17s/it]
+Loading pipeline components...: 100%|████████████████████████████████████████████████████████████████████████████████| 7/7 [00:49<00:00,  7.05s/it]
+LDM loaded and successfully FROZEN!nsors:  40%|█████████████████████████▏                                     | 1.37G/3.44G [00:35<01:09, 29.7MB/s]
+unet/diffusion_pytorch_model.safetensors: 100%|██████████████████████████████████████████████████████████████▊| 3.43G/3.44G [00:58<00:00, 95.8MB/s]
+==========Epoch 1/10==========
+Train Batch 0/135 - Loss: 0.6940 - Acc: 0.5625 - AUC: 0.4431
+Train Batch 20/135 - Loss: 0.6898 - Acc: 0.6250 - AUC: 0.6392
+Train Batch 40/135 - Loss: 0.6911 - Acc: 0.5625 - AUC: 0.6588
+Train Batch 60/135 - Loss: 0.6922 - Acc: 0.5312 - AUC: 0.5547
+Train Batch 80/135 - Loss: 0.6858 - Acc: 0.6875 - AUC: 0.7229
+Train Batch 100/135 - Loss: 0.6881 - Acc: 0.5938 - AUC: 0.6235
+Train Batch 120/135 - Loss: 0.6941 - Acc: 0.4375 - AUC: 0.6708
+Evaluating on Validation Set...
+==========Epoch 1 Summary==========
+Train Loss: 0.6929 | Train Acc: 0.5067 | Train AUC: 0.5137
+Val Loss:   0.6925 | Val Acc:   0.5179 | Val AUC:   0.5227
+※※※New Best Model Saved with Val Loss: 0.6925 | Val Acc: 0.5179 | Val AUC: 0.5227※※※
+==========End of Epoch 1==========
+
+==========Epoch 2/10==========
+Train Batch 0/135 - Loss: 0.6974 - Acc: 0.4062 - AUC: 0.3569
+Train Batch 20/135 - Loss: 0.6927 - Acc: 0.4688 - AUC: 0.4980
+Train Batch 40/135 - Loss: 0.6873 - Acc: 0.6875 - AUC: 0.7451
+Train Batch 60/135 - Loss: 0.6945 - Acc: 0.5000 - AUC: 0.4078
+Train Batch 80/135 - Loss: 0.6934 - Acc: 0.4375 - AUC: 0.6083
+Train Batch 100/135 - Loss: 0.6939 - Acc: 0.5000 - AUC: 0.6706
+Train Batch 120/135 - Loss: 0.6903 - Acc: 0.5938 - AUC: 0.5820
+Evaluating on Validation Set...
+==========Epoch 2 Summary==========
+Train Loss: 0.6902 | Train Acc: 0.5589 | Train AUC: 0.5885
+Val Loss:   0.6909 | Val Acc:   0.5500 | Val AUC:   0.5564
+※※※New Best Model Saved with Val Loss: 0.6909 | Val Acc: 0.5500 | Val AUC: 0.5564※※※
+==========End of Epoch 2==========
+
+==========Epoch 3/10==========
+Train Batch 0/135 - Loss: 0.6880 - Acc: 0.6250 - AUC: 0.6941
+Train Batch 20/135 - Loss: 0.6937 - Acc: 0.5312 - AUC: 0.4881
+Train Batch 40/135 - Loss: 0.6779 - Acc: 0.6875 - AUC: 0.7375
+Train Batch 60/135 - Loss: 0.6962 - Acc: 0.4688 - AUC: 0.4246
+Train Batch 80/135 - Loss: 0.6879 - Acc: 0.5625 - AUC: 0.5870
+Train Batch 100/135 - Loss: 0.6809 - Acc: 0.6250 - AUC: 0.7045
+Train Batch 120/135 - Loss: 0.6799 - Acc: 0.6562 - AUC: 0.6865
+Evaluating on Validation Set...
+==========Epoch 3 Summary==========
+Train Loss: 0.6863 | Train Acc: 0.5832 | Train AUC: 0.6106
+Val Loss:   0.6871 | Val Acc:   0.5464 | Val AUC:   0.5677
+※※※New Best Model Saved with Val Loss: 0.6871 | Val Acc: 0.5464 | Val AUC: 0.5677※※※
+==========End of Epoch 3==========
+
+==========Epoch 4/10==========
+Train Batch 0/135 - Loss: 0.6674 - Acc: 0.6562 - AUC: 0.7540
+Train Batch 20/135 - Loss: 0.6760 - Acc: 0.6562 - AUC: 0.7765
+Train Batch 40/135 - Loss: 0.6930 - Acc: 0.6562 - AUC: 0.6250
+Train Batch 60/135 - Loss: 0.6894 - Acc: 0.5312 - AUC: 0.5833
+Train Batch 80/135 - Loss: 0.6728 - Acc: 0.6250 - AUC: 0.6157
+Train Batch 100/135 - Loss: 0.6673 - Acc: 0.5312 - AUC: 0.6397
+Train Batch 120/135 - Loss: 0.6864 - Acc: 0.6250 - AUC: 0.5789
+Evaluating on Validation Set...
+==========Epoch 4 Summary==========
+Train Loss: 0.6750 | Train Acc: 0.6059 | Train AUC: 0.6447
+Val Loss:   0.6831 | Val Acc:   0.5595 | Val AUC:   0.5787
+※※※New Best Model Saved with Val Loss: 0.6831 | Val Acc: 0.5595 | Val AUC: 0.5787※※※
+==========End of Epoch 4==========
+
+==========Epoch 5/10==========
+Train Batch 0/135 - Loss: 0.6886 - Acc: 0.5312 - AUC: 0.5292
+Train Batch 20/135 - Loss: 0.6887 - Acc: 0.4688 - AUC: 0.5750
+Train Batch 40/135 - Loss: 0.6741 - Acc: 0.5312 - AUC: 0.6230
+Train Batch 60/135 - Loss: 0.6896 - Acc: 0.5000 - AUC: 0.5625
+Train Batch 80/135 - Loss: 0.6637 - Acc: 0.6250 - AUC: 0.6518
+Train Batch 100/135 - Loss: 0.6612 - Acc: 0.5938 - AUC: 0.6591
+Train Batch 120/135 - Loss: 0.6292 - Acc: 0.5938 - AUC: 0.7103
+Evaluating on Validation Set...
+==========Epoch 5 Summary==========
+Train Loss: 0.6618 | Train Acc: 0.6150 | Train AUC: 0.6583
+Val Loss:   0.6757 | Val Acc:   0.5631 | Val AUC:   0.5998
+※※※New Best Model Saved with Val Loss: 0.6757 | Val Acc: 0.5631 | Val AUC: 0.5998※※※
+==========End of Epoch 5==========
+
+==========Epoch 6/10==========
+Train Batch 0/135 - Loss: 0.6435 - Acc: 0.6562 - AUC: 0.6883
+Train Batch 20/135 - Loss: 0.6553 - Acc: 0.6250 - AUC: 0.7208
+Train Batch 40/135 - Loss: 0.6665 - Acc: 0.6250 - AUC: 0.6389
+Train Batch 60/135 - Loss: 0.6615 - Acc: 0.5000 - AUC: 0.6356
+Train Batch 80/135 - Loss: 0.6704 - Acc: 0.5938 - AUC: 0.6397
+Train Batch 100/135 - Loss: 0.7176 - Acc: 0.5312 - AUC: 0.4958
+Train Batch 120/135 - Loss: 0.6421 - Acc: 0.7500 - AUC: 0.7031
+Evaluating on Validation Set...
+==========Epoch 6 Summary==========
+Train Loss: 0.6464 | Train Acc: 0.6289 | Train AUC: 0.6785
+Val Loss:   0.6987 | Val Acc:   0.5452 | Val AUC:   0.5772
+==========End of Epoch 6==========
+
+==========Epoch 7/10==========
+Train Batch 0/135 - Loss: 0.5112 - Acc: 0.7812 - AUC: 0.9083
+Train Batch 20/135 - Loss: 0.6539 - Acc: 0.5938 - AUC: 0.6431
+Train Batch 40/135 - Loss: 0.6763 - Acc: 0.6562 - AUC: 0.6406
+Train Batch 60/135 - Loss: 0.7209 - Acc: 0.5312 - AUC: 0.5357
+Train Batch 80/135 - Loss: 0.6881 - Acc: 0.6250 - AUC: 0.6314
+Train Batch 100/135 - Loss: 0.6539 - Acc: 0.5625 - AUC: 0.6602
+Train Batch 120/135 - Loss: 0.6663 - Acc: 0.5000 - AUC: 0.5951
+Evaluating on Validation Set...
+==========Epoch 7 Summary==========
+Train Loss: 0.6507 | Train Acc: 0.6191 | Train AUC: 0.6643
+Val Loss:   0.6999 | Val Acc:   0.5631 | Val AUC:   0.5685
+==========End of Epoch 7==========
+
+==========Epoch 8/10==========
+Train Batch 0/135 - Loss: 0.6790 - Acc: 0.5625 - AUC: 0.6196
+Train Batch 20/135 - Loss: 0.5878 - Acc: 0.6875 - AUC: 0.8333
+Train Batch 40/135 - Loss: 0.6483 - Acc: 0.6250 - AUC: 0.6349
+Train Batch 60/135 - Loss: 0.6065 - Acc: 0.6562 - AUC: 0.7383
+Train Batch 80/135 - Loss: 0.6066 - Acc: 0.6562 - AUC: 0.7490
+Train Batch 100/135 - Loss: 0.6648 - Acc: 0.5000 - AUC: 0.6000
+Train Batch 120/135 - Loss: 0.5567 - Acc: 0.7500 - AUC: 0.8214
+Evaluating on Validation Set...
+==========Epoch 8 Summary==========
+Train Loss: 0.6319 | Train Acc: 0.6493 | Train AUC: 0.6996
+Val Loss:   0.6833 | Val Acc:   0.5833 | Val AUC:   0.6104
+※※※New Best Model Saved with Val Loss: 0.6833 | Val Acc: 0.5833 | Val AUC: 0.6104※※※
+==========End of Epoch 8==========
+
+==========Epoch 9/10==========
+Train Batch 0/135 - Loss: 0.6301 - Acc: 0.7188 - AUC: 0.6715
+Train Batch 20/135 - Loss: 0.5091 - Acc: 0.8125 - AUC: 0.8866
+Train Batch 40/135 - Loss: 0.7216 - Acc: 0.5625 - AUC: 0.5992
+Train Batch 60/135 - Loss: 0.7302 - Acc: 0.4688 - AUC: 0.4960
+Train Batch 80/135 - Loss: 0.7721 - Acc: 0.4375 - AUC: 0.4858
+Train Batch 100/135 - Loss: 0.6670 - Acc: 0.5625 - AUC: 0.6250
+Train Batch 120/135 - Loss: 0.6834 - Acc: 0.5938 - AUC: 0.6333
+Evaluating on Validation Set...
+==========Epoch 9 Summary==========
+Train Loss: 0.6331 | Train Acc: 0.6384 | Train AUC: 0.6930
+Val Loss:   0.7186 | Val Acc:   0.5500 | Val AUC:   0.5723
+==========End of Epoch 9==========
+
+==========Epoch 10/10==========
+Train Batch 0/135 - Loss: 0.6086 - Acc: 0.7188 - AUC: 0.7302
+Train Batch 20/135 - Loss: 0.6957 - Acc: 0.5000 - AUC: 0.5714
+Train Batch 40/135 - Loss: 0.6717 - Acc: 0.5938 - AUC: 0.6431
+Train Batch 60/135 - Loss: 0.7280 - Acc: 0.5625 - AUC: 0.5703
+Train Batch 80/135 - Loss: 0.7434 - Acc: 0.5625 - AUC: 0.5754
+Train Batch 100/135 - Loss: 0.5937 - Acc: 0.7500 - AUC: 0.7804
+Train Batch 120/135 - Loss: 0.7128 - Acc: 0.5625 - AUC: 0.5647
+Evaluating on Validation Set...
+==========Epoch 10 Summary==========
+Train Loss: 0.6293 | Train Acc: 0.6446 | Train AUC: 0.6992
+Val Loss:   0.7293 | Val Acc:   0.5333 | Val AUC:   0.5436
+==========End of Epoch 10==========
+
+2. test_both_ldm_try_1.py
+4-blutch$ /medias/db/ImagingSecurity_misc/zengw/miniconda3/envs/myenv/bin/python test_ffds_ldm_try_1.py
+==========Using device: cuda==========
+Loading FFDS TEST Dataset...
+TEST Dataset loaded. Total frames: 840
+Loading Celeb-DF-v2 Dataset for Cross-dataset Testing...
+Celeb-DF-v2 Dataset loaded. Total frames: 19587
+Loading Latent Diffusion Model (Stable Diffusion v1.5)...
+Loading pipeline components...: 100%|████████████████████████████████████████████████████████████████████████████████| 7/7 [00:00<00:00,  8.26it/s]
+LDM loaded and successfully FROZEN.
+Loading saved weights from: best_ffds_model_ldm_try_1.pth
+
+STARTING FF++ IN-DOMAIN EVALUATION...
+
+STARTING CELEB-DF CROSS-DATASET EVALUATION...
+
+==========FINAL ABLATION STUDY RESULTS (TRY 1)==========
+[FF++ In-Domain]   Test Loss: 0.7137 | Test Acc: 0.5512 | Test AUC: 0.5613
+[Celeb-DF Cross]   Test Loss: 0.7854 | Test Acc: 0.4563 | Test AUC: 0.4988
+========================================================

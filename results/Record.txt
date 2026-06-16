@@ -1,0 +1,24 @@
+1. ldm_try_1.py
+
+Image (224x224) → Frozen VAE Encoder → z → Add Noise → UNet (Only 1 Step) → z^ → Calculate (z - z^) → 3-Layer MLP → Real/Fake.
+
+①only used a single forward/backward denoising step instead of a full diffusion trajectory.
+②used a dummy tensor of all zeros (torch.zeros) instead of a proper CLIP text embedding
+③the input was 224x224, which is not the optimal working space for Stable Diffusion v1.5 (designed for 512x512)
+
+
+
+2. ldm_try_2.py
+
+Image (512x512) → Frozen VAE Encoder → z → Add Noise → 20-step DDIM Denoising Loop → z^ → Calculate |z - z^| → Downsized MLP → Real/Fake.
+
+①introduced a real DDIM Scheduler for a complete 20-step denoising loop
+②changed the feature calculation to the absolute difference |z - z^| to force the MLP to focus on the magnitude
+③used the mean of the latent distribution instead of .sample() during VAE encoding to remove random noise
+④upgraded to 512x512 and used the actual CLIP text encoder
+
+
+
+3. Next
+①concatenating the latents, like Concat(z, z^), preserves more directional and spatial information
+②DDIM start_step (for example, comparing t=250 vs t=500)

@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dataset import FFDS, build_ffds_split
-from src.model import FrozenVAEEncoder, ResNetEncoder, MLPClassifier
+from src.model import FrozenVAEEncoder, TrainableVAEEncoder, ResNetEncoder, MLPClassifier
 # Reuse helpers from train.py. Importing does NOT trigger training,
 # because train.py guards its entry point with `if __name__ == "__main__"`.
 from src.train import auroc, encode_dataset, LDM_DIM
@@ -30,7 +30,7 @@ from src.train import auroc, encode_dataset, LDM_DIM
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-ENCODER_TYPE = "ldm"              # "ldm" or "resnet" — which model to evaluate
+ENCODER_TYPE = "ldm"              # "ldm", "ldm_finetune", ou "resnet"
 FFPP_ROOT = "/medias/db/deepfakes/Faceforensics"
 MANIPULATION = "Deepfakes"
 SPLIT = "test.json"               # in-domain test set
@@ -44,9 +44,11 @@ RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
 
 def build_encoder_and_model():
-    """Return (encoder, model, input_dim, checkpoint_path) for ENCODER_TYPE."""
+    """Return (encoder, input_dim, checkpoint_path) for ENCODER_TYPE."""
     if ENCODER_TYPE == "ldm":
         return FrozenVAEEncoder(), LDM_DIM, RESULTS_DIR / "best_ldm.pt"
+    elif ENCODER_TYPE == "ldm_finetune":
+        return TrainableVAEEncoder(), LDM_DIM, RESULTS_DIR / "best_ldm_finetune.pt"
     elif ENCODER_TYPE == "resnet":
         return ResNetEncoder(), ResNetEncoder.OUTPUT_DIM, RESULTS_DIR / "best_resnet.pt"
     raise ValueError(f"Unknown ENCODER_TYPE: {ENCODER_TYPE}")
@@ -72,14 +74,25 @@ def main() -> None:
     ffds = FFDS(paths, labels)
     print(f"  test samples: {len(ffds)} (real: {labels.count(0)}, fake: {labels.count(1)})")
 
-    # --- Pre-encode with the chosen frozen extractor ----------------------
+    # --- Charger le checkpoint (format différent pour ldm_finetune) -------
     encoder = encoder.to(DEVICE)
-    print(f"Pre-encoding test set with {ENCODER_TYPE} encoder...")
+    ckpt = torch.load(checkpoint, map_location=DEVICE)
+
+    if ENCODER_TYPE == "ldm_finetune":
+        # Le checkpoint contient encoder + MLP sous forme de dict
+        encoder.load_state_dict(ckpt["encoder_state_dict"])
+        print(f"Loaded encoder weights from {checkpoint}")
+
+    encoder.eval()
+    print(f"Encoding test set with {ENCODER_TYPE} encoder...")
     test_ds = encode_dataset(ffds, encoder, DEVICE)
 
     # --- Load the trained MLP ---------------------------------------------
     model = MLPClassifier(input_dim=input_dim).to(DEVICE)
-    model.load_state_dict(torch.load(checkpoint, map_location=DEVICE))
+    if ENCODER_TYPE == "ldm_finetune":
+        model.load_state_dict(ckpt["mlp_state_dict"])
+    else:
+        model.load_state_dict(ckpt)
     model.eval()
     print(f"Loaded MLP from {checkpoint}")
 
