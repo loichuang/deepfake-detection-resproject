@@ -11,6 +11,7 @@ Run from the project root on blutch:
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -24,9 +25,12 @@ from src.model import FrozenVAEEncoder, TrainableVAEEncoder, ResNetEncoder, MLPC
 from src.train import auroc, encode_dataset, LDM_DIM
 
 # ---------------------------------------------------------------------------
-# Configuration
+# Configuration (overridable via --encoder CLI arg)
 # ---------------------------------------------------------------------------
-ENCODER_TYPE = "ldm"              # "ldm", "ldm_finetune", ou "resnet"
+_parser = argparse.ArgumentParser(add_help=False)
+_parser.add_argument("--encoder", default="ldm", choices=["ldm", "ldm_finetune", "resnet"])
+_args, _ = _parser.parse_known_args()
+ENCODER_TYPE = _args.encoder         # "ldm", "ldm_finetune", ou "resnet"
 CELEBDF_ROOT = "/medias/db/deepfakes/Celeb-DF-v2"
 N_FRAMES_PER_VIDEO = 5
 SEED = 42
