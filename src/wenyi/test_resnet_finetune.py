@@ -52,7 +52,8 @@ class CelebDFDataset(Dataset):
                             self.labels.append(label)
 
         print(f"Celeb-DF-v2 Dataset loaded. Total frames: {len(self.image_paths)}")
-        self.mtcnn = MTCNN(image_size=224, margin=20, keep_all=False, device='cpu')
+        device_mtcnn = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.mtcnn = MTCNN(image_size=224, margin=20, keep_all=False, device=device_mtcnn)
 
     def __len__(self):
         return len(self.image_paths)
@@ -71,20 +72,48 @@ class CelebDFDataset(Dataset):
         return img_tensor, torch.tensor([self.labels[idx]], dtype=torch.float32)
 
 
+def evaluate_and_save(encoder, model, dataloader, criterion, device, scores_path, labels_path):
+    """Évalue et sauvegarde les scores bruts par frame en .npy pour les courbes ROC."""
+    encoder.eval(); model.eval()
+    running_loss, all_labels, all_preds = 0.0, [], []
+    running_corrects, total_samples = 0, 0
+    with torch.no_grad():
+        for crop, label in dataloader:
+            crop, label = crop.to(device), label.to(device)
+            features = encoder(crop)
+            pred = model(features)
+            loss = criterion(pred, label)
+            running_loss += loss.item()
+            probs = torch.sigmoid(pred).detach().cpu().numpy().flatten()
+            labels_np = label.detach().cpu().numpy().flatten()
+            all_preds.extend(probs)
+            all_labels.extend(labels_np)
+            running_corrects += np.sum((probs > 0.5).astype(float) == labels_np)
+            total_samples += len(labels_np)
+    scores_arr = np.array(all_preds)
+    labels_arr = np.array(all_labels)
+    np.save(scores_path, scores_arr)
+    np.save(labels_path, labels_arr)
+    print(f"  Scores sauvegardés : {scores_path}")
+    from sklearn.metrics import roc_auc_score
+    auc = roc_auc_score(labels_arr, scores_arr) if len(set(all_labels)) > 1 else 0.5
+    return running_loss / len(dataloader), running_corrects / total_samples, auc
+
+
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"==========Using device: {device}==========")
 
     print("Loading FFDS TEST Dataset...")
     ffds_loader = DataLoader(
-        FFDS(split='test', num_frames=3), batch_size=32, num_workers=2, shuffle=False
+        FFDS(split='test', num_frames=3), batch_size=64, num_workers=4, shuffle=False
     )
     print("Loading Celeb-DF-v2 Dataset...")
-    celeb_dataset = CelebDFDataset(num_frames=3)
+    celeb_dataset = CelebDFDataset(num_frames=2)
     if len(celeb_dataset) == 0:
         print("ERROR: No Celeb-DF images loaded!")
         exit()
-    celeb_loader = DataLoader(celeb_dataset, batch_size=32, num_workers=2, shuffle=False)
+    celeb_loader = DataLoader(celeb_dataset, batch_size=64, num_workers=4, shuffle=False)
 
     # Charger encoder + MLP
     encoder = models.resnet50(pretrained=False)
@@ -100,10 +129,18 @@ if __name__ == "__main__":
     criterion = nn.BCEWithLogitsLoss()
 
     print("\nSTARTING FF++ IN-DOMAIN EVALUATION...")
-    ffds_loss, ffds_acc, ffds_auc = evaluate_model(encoder, model, ffds_loader, criterion, device)
+    ffds_loss, ffds_acc, ffds_auc = evaluate_and_save(
+        encoder, model, ffds_loader, criterion, device,
+        scores_path=str(RESULTS_DIR / "wenyi_resnet_scores_ffpp.npy"),
+        labels_path=str(RESULTS_DIR / "wenyi_resnet_labels_ffpp.npy"),
+    )
 
     print("\nSTARTING CELEB-DF CROSS-DATASET EVALUATION...")
-    celeb_loss, celeb_acc, celeb_auc = evaluate_model(encoder, model, celeb_loader, criterion, device)
+    celeb_loss, celeb_acc, celeb_auc = evaluate_and_save(
+        encoder, model, celeb_loader, criterion, device,
+        scores_path=str(RESULTS_DIR / "wenyi_resnet_scores_celeb.npy"),
+        labels_path=str(RESULTS_DIR / "wenyi_resnet_labels_celeb.npy"),
+    )
 
     print(f"\n==========FINAL RESULTS (ResNet fine-tuné)==========")
     print(f"[FF++ In-Domain]  Loss: {ffds_loss:.4f} | Acc: {ffds_acc:.4f} | AUC: {ffds_auc:.4f}")
