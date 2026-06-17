@@ -27,6 +27,7 @@ data/latent_cache/
 *.pt
 *.pth
 *.ckpt
+*.npy
 
 # Jupyter — notebooks .ipynb are auto-generated from .py via jupytext.
 # We only version the .py (clean diffs) and keep the .ipynb local-only.
