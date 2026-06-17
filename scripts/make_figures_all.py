@@ -46,18 +46,18 @@ NAVY = "#1E2761"
 
 MODELS = {
     # name : (label, couleur, groupe)
-    "ldm":           ("LDM figé (SD 1.4)",       "#2A9D8F", "frozen"),
-    "resnet":        ("ResNet-50 figé",            "#9AA0B4", "frozen"),
-    "wenyi_try1":    ("Wenyi — PNDM 1 step",       "#457B9D", "denoising"),
-    "wenyi_try2":    ("Wenyi — DDIM 20 steps",     "#1D3557", "denoising"),
-    "ldm_finetune":  ("LDM fine-tuné (SD 1.4)",   "#E76F51", "finetune"),
-    "wenyi_resnet":  ("Wenyi — ResNet FT",         "#A8DADC", "finetune"),
+    "ldm":           ("LDM encoder (frozen)",      "#2A9D8F", "frozen"),
+    "resnet":        ("ResNet-50 (frozen)",         "#9AA0B4", "frozen"),
+    "wenyi_try1":    ("PNDM 1-step (Try 1)",        "#457B9D", "denoising"),
+    "wenyi_try2":    ("DDIM 20-step (Try 2)",       "#1D3557", "denoising"),
+    "ldm_finetune":  ("LDM fine-tuned (SD 1.4)",   "#E76F51", "finetune"),
+    "wenyi_resnet":  ("ResNet-50 fine-tuned",       "#A8DADC", "finetune"),
 }
 
 # Groupes progressifs pour les 3 figures
 GROUPS = [
-    ("frozen",    "Encodeurs figés"),
-    ("denoising", "Débruitage LDM"),
+    ("frozen",    "Frozen encoders"),
+    ("denoising", "Denoising residual"),
     ("finetune",  "Fine-tuning"),
 ]
 
@@ -154,11 +154,11 @@ def plot_roc(ax, results_so_far, dname, title):
         ax.plot(d["fpr"], d["tpr"], color=MODELS[name][1], lw=2.2,
                 label=f"{label_str}  (AUC {d['auc']:.3f})")
     ax.plot([0, 1], [0, 1], color="#C9CDD8", lw=1, ls="--")
-    ax.set_title(title, color=NAVY, fontsize=11, pad=6)
-    ax.set_xlabel("FPR", color="#33384D", fontsize=9)
-    ax.set_ylabel("TPR", color="#33384D", fontsize=9)
+    ax.set_title(title, color=NAVY, fontsize=12, pad=6)
+    ax.set_xlabel("FPR", color="#33384D", fontsize=10)
+    ax.set_ylabel("TPR", color="#33384D", fontsize=10)
     ax.set_xlim(0, 1); ax.set_ylim(0, 1.02)
-    ax.legend(loc="lower right", fontsize=8, frameon=False)
+    ax.legend(loc="lower right", fontsize=9, frameon=False)
     ax.grid(color="#E2E8F0", lw=0.5)
     for spine in ax.spines.values():
         spine.set_color("#C9CDD8")
@@ -240,7 +240,7 @@ def main():
             if grp == group_key and name in all_results:
                 cumulative[name] = all_results[name]
 
-        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        fig, axes = plt.subplots(1, 2, figsize=(14, 6))
         for ax, dname, subtitle in zip(
             axes,
             ["FF++", "Celeb-DF"],
@@ -250,7 +250,7 @@ def main():
 
         # Légende du groupe courant dans le titre
         groups_shown = " + ".join(GROUPS[j][1] for j in range(k + 1))
-        fig.suptitle(f"Courbes ROC — {groups_shown}", color=NAVY, fontsize=12, y=1.01)
+        fig.suptitle(f"ROC curves — {groups_shown}", color=NAVY, fontsize=13, y=1.01)
         fig.tight_layout()
         out_path = RESULTS_DIR / f"roc_fig{k+1}_{group_key}.png"
         fig.savefig(out_path, dpi=160, bbox_inches="tight")
@@ -289,16 +289,17 @@ def main():
                     color=NAVY, fontweight="bold", rotation=90)
 
     ax.axhline(0.5, color="#C9CDD8", lw=1, ls=":", zorder=0)
-    ax.text(len(dsets) - 0.05, 0.515, "hasard", color="#9AA0B4", fontsize=8.5, ha="right")
+    ax.text(0.98, 0.505, "chance", color="#9AA0B4", fontsize=8.5,
+            ha="right", va="bottom", transform=ax.get_yaxis_transform())
     ax.set_xticks(x)
     ax.set_xticklabels(["FF++ (in-domain)", "Celeb-DF (cross-dataset)"], color=NAVY, fontsize=11)
     ax.set_ylabel("AUC", color="#33384D", fontsize=11)
     ax.set_ylim(0, 1.15)
-    ax.legend(loc="upper right", fontsize=8, frameon=False, ncol=2)
+    ax.legend(loc="upper right", fontsize=9, frameon=False, ncol=2)
     ax.grid(axis="y", color="#E2E8F0", lw=0.5)
     for spine in ax.spines.values():
         spine.set_color("#C9CDD8")
-    ax.set_title("AUC — tous les modèles (IC 95 % bootstrap video-level)",
+    ax.set_title("AUC — all models (95% bootstrap CI, video-level)",
                  color=NAVY, fontsize=11, pad=8)
     fig.tight_layout()
     fig.savefig(RESULTS_DIR / "auc_bars_all.png", dpi=160, bbox_inches="tight")
