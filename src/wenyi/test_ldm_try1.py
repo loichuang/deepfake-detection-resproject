@@ -57,8 +57,7 @@ class CelebDFDataset(Dataset):
                             self.labels.append(label)
 
         print(f"Celeb-DF-v2 Dataset loaded. Total frames: {len(self.image_paths)}")
-        device_mtcnn = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.mtcnn = MTCNN(image_size=224, margin=20, keep_all=False, device=device_mtcnn)
+        self.mtcnn = MTCNN(image_size=224, margin=20, keep_all=False, device='cpu')
 
     def __len__(self):
         return len(self.image_paths)
