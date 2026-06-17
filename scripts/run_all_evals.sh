@@ -42,7 +42,7 @@ run_logged() {
     local label="$1"; shift
     local log="$LOG_DIR/${label}_${TS}.log"
     echo "→ [$label] Démarrage..."
-    if python "$@" 2>&1 | tee "$log"; then
+    if python3 "$@" 2>&1 | tee "$log"; then
         echo "  ✓ [$label] Terminé → log: $log"
     else
         echo "  ✗ [$label] ERREUR — voir $log"
@@ -63,7 +63,7 @@ echo ""
 
 if [ ! -f "$RESULTS/best_ldm.pt" ]; then
     echo "  best_ldm.pt absent → lancement de src/train.py"
-    run_logged "train_ldm" src/train.py
+    run_logged "train_ldm" python3 src/train.py
 else
     echo "  ✓ best_ldm.pt existant — entraînement ignoré"
 fi
@@ -99,9 +99,9 @@ LOG_LDM_FFPP="$LOG_DIR/eval_ldm_ffpp_${TS}.log"
 LOG_LDM_CELEB="$LOG_DIR/eval_ldm_celebdf_${TS}.log"
 
 echo "→ [LDM figé] FF++ in-domain..."
-python src/eval.py --encoder ldm 2>&1 | tee "$LOG_LDM_FFPP"
+python3 src/eval.py --encoder ldm 2>&1 | tee "$LOG_LDM_FFPP"
 echo "→ [LDM figé] Celeb-DF cross-dataset..."
-python src/eval_celebdf.py --encoder ldm 2>&1 | tee "$LOG_LDM_CELEB"
+python3 src/eval_celebdf.py --encoder ldm 2>&1 | tee "$LOG_LDM_CELEB"
 
 # ---------------------------------------------------------------------------
 # 2b. ResNet figé — FF++ + Celeb-DF
@@ -110,9 +110,9 @@ LOG_RN_FFPP="$LOG_DIR/eval_resnet_ffpp_${TS}.log"
 LOG_RN_CELEB="$LOG_DIR/eval_resnet_celebdf_${TS}.log"
 
 echo "→ [ResNet figé] FF++ in-domain..."
-python src/eval.py --encoder resnet 2>&1 | tee "$LOG_RN_FFPP"
+python3 src/eval.py --encoder resnet 2>&1 | tee "$LOG_RN_FFPP"
 echo "→ [ResNet figé] Celeb-DF cross-dataset..."
-python src/eval_celebdf.py --encoder resnet 2>&1 | tee "$LOG_RN_CELEB"
+python3 src/eval_celebdf.py --encoder resnet 2>&1 | tee "$LOG_RN_CELEB"
 
 # ---------------------------------------------------------------------------
 # 2c. LDM fine-tuné — FF++ + Celeb-DF
@@ -121,30 +121,30 @@ LOG_LDM_FT_FFPP="$LOG_DIR/eval_ldm_finetune_ffpp_${TS}.log"
 LOG_LDM_FT_CELEB="$LOG_DIR/eval_ldm_finetune_celebdf_${TS}.log"
 
 echo "→ [LDM fine-tuné] FF++ in-domain..."
-python src/eval.py --encoder ldm_finetune 2>&1 | tee "$LOG_LDM_FT_FFPP"
+python3 src/eval.py --encoder ldm_finetune 2>&1 | tee "$LOG_LDM_FT_FFPP"
 echo "→ [LDM fine-tuné] Celeb-DF cross-dataset..."
-python src/eval_celebdf.py --encoder ldm_finetune 2>&1 | tee "$LOG_LDM_FT_CELEB"
+python3 src/eval_celebdf.py --encoder ldm_finetune 2>&1 | tee "$LOG_LDM_FT_CELEB"
 
 # ---------------------------------------------------------------------------
 # 2d. Wenyi TRY 1
 # ---------------------------------------------------------------------------
 LOG_W1="$LOG_DIR/eval_wenyi_try1_${TS}.log"
 echo "→ [Wenyi TRY 1] FF++ + Celeb-DF..."
-python src/wenyi/test_ldm_try1.py 2>&1 | tee "$LOG_W1"
+python3 src/wenyi/test_ldm_try1.py 2>&1 | tee "$LOG_W1"
 
 # ---------------------------------------------------------------------------
 # 2e. Wenyi TRY 2
 # ---------------------------------------------------------------------------
 LOG_W2="$LOG_DIR/eval_wenyi_try2_${TS}.log"
 echo "→ [Wenyi TRY 2] FF++ + Celeb-DF..."
-python src/wenyi/test_ldm_try2.py 2>&1 | tee "$LOG_W2"
+python3 src/wenyi/test_ldm_try2.py 2>&1 | tee "$LOG_W2"
 
 # ---------------------------------------------------------------------------
 # 2f. Wenyi ResNet fine-tuné
 # ---------------------------------------------------------------------------
 LOG_WR="$LOG_DIR/eval_wenyi_resnet_${TS}.log"
 echo "→ [Wenyi ResNet FT] FF++ + Celeb-DF..."
-python src/wenyi/test_resnet_finetune.py 2>&1 | tee "$LOG_WR"
+python3 src/wenyi/test_resnet_finetune.py 2>&1 | tee "$LOG_WR"
 
 # ---------------------------------------------------------------------------
 # 3. RÉSUMÉ
