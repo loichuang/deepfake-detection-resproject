@@ -9,7 +9,6 @@ EURECOM blutch cluster under `c23/frames/`). Aggregation back to video level
 will happen later (feature F7).
 """
 
-from __future__ import annotations
 
 import json
 import random

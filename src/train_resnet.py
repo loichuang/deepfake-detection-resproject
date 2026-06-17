@@ -10,7 +10,6 @@ Run from the project root on blutch:
     python src/train_resnet.py
 """
 
-from __future__ import annotations
 
 import sys
 from pathlib import Path

@@ -14,7 +14,6 @@ Run from the project root on blutch:
     python src/train.py
 """
 
-from __future__ import annotations
 
 import csv
 import sys

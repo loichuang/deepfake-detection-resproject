@@ -7,7 +7,6 @@ Three encoders + one shared MLP head:
   - MLPClassifier       : 3-layer MLP, tête partagée par tous les encodeurs.
 """
 
-from __future__ import annotations
 
 import torch
 import torch.nn as nn

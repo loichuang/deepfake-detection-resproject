@@ -13,7 +13,6 @@ Run depuis la racine du projet sur blutch :
     python src/train_ldm_finetune.py
 """
 
-from __future__ import annotations
 
 import csv
 import sys

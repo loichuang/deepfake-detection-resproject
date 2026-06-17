@@ -11,7 +11,6 @@ Run from the project root on blutch:
     python src/eval.py
 """
 
-from __future__ import annotations
 
 import argparse
 import sys
