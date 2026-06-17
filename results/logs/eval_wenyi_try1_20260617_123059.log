@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/wenyi/test_ldm_try1.py", line 27, in <module>
+    from src.wenyi.train_ldm_try1 import FFDS, ThreeLayerMLP, evaluate_model
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/wenyi/train_ldm_try1.py", line 31, in <module>
+    from sklearn.metrics import roc_auc_score
+ModuleNotFoundError: No module named 'sklearn'

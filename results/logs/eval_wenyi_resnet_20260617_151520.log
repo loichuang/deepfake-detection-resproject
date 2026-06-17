@@ -1,0 +1,21 @@
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+==========Using device: cuda==========
+Loading FFDS TEST Dataset...
+TEST Dataset loaded. Total frames: 840
+Loading Celeb-DF-v2 Dataset...
+Celeb-DF-v2 Dataset loaded. Total frames: 13058
+Loading weights from: /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_resnet_finetune.pt
+
+STARTING FF++ IN-DOMAIN EVALUATION...
+  Scores sauvegardés : /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_resnet_scores_ffpp.npy
+
+STARTING CELEB-DF CROSS-DATASET EVALUATION...
+  Scores sauvegardés : /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_resnet_scores_celeb.npy
+
+==========FINAL RESULTS (ResNet fine-tuné)==========
+[FF++ In-Domain]  Loss: 0.3037 | Acc: 0.9262 | AUC: 0.9745
+[Celeb-DF Cross]  Loss: 3.9046 | Acc: 0.3606 | AUC: 0.6953
+====================================================

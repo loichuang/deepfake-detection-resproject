@@ -1,0 +1,19 @@
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Device: cuda | encoder: ldm_finetune
+Building Celeb-DF-v2 official test split...
+  test samples: 2590 (real: 890, fake: 1700)
+Loaded encoder weights from /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/best_ldm_finetune.pt
+Encoding Celeb-DF test set with ldm_finetune encoder...
+  encoded 2590 samples -> latent shape (4, 64, 64)
+Loaded FF++-trained MLP from /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/best_ldm_finetune.pt
+
+=======================================================
+CROSS-DATASET RESULTS — FF++ model on Celeb-DF-v2
+=======================================================
+AUC        : 0.4989
+Accuracy   : 0.4707
+Confusion  : TP=724  TN=495  FP=395  FN=976
+
+Interpretation: compare this AUC to your in-domain FF++ test AUC.
+A large drop is the expected (and publishable) cross-dataset gap.

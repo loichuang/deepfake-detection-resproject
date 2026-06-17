@@ -1,0 +1,39 @@
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Device: cuda
+Régime : fine-tuning (encodeur VAE SD 1.4 entraînable)
+Building datasets from official FF++ splits...
+  train: 7190 samples | val: 1397 samples
+Loading TrainableVAEEncoder (SD 1.4)...
+  VAE params     : 83,653,863
+  MLP params     : 8,454,913
+History log: /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/train_ldm_finetune_history.csv
+Epoch  1/20 | loss 0.2745 | train AUC 0.9497 | val AUC 0.9833
+  → best saved (val AUC 0.9833)
+Epoch  2/20 | loss 0.0940 | train AUC 0.9944 | val AUC 0.9853
+  → best saved (val AUC 0.9853)
+Epoch  3/20 | loss 0.0534 | train AUC 0.9982 | val AUC 0.9856
+  → best saved (val AUC 0.9856)
+Epoch  4/20 | loss 0.0247 | train AUC 0.9996 | val AUC 0.9860
+  → best saved (val AUC 0.9860)
+Epoch  5/20 | loss 0.0234 | train AUC 0.9996 | val AUC 0.9823
+Epoch  6/20 | loss 0.0135 | train AUC 0.9999 | val AUC 0.9859
+Epoch  7/20 | loss 0.0113 | train AUC 0.9999 | val AUC 0.9836
+Epoch  8/20 | loss 0.0098 | train AUC 0.9999 | val AUC 0.9865
+  → best saved (val AUC 0.9865)
+Epoch  9/20 | loss 0.0078 | train AUC 0.9999 | val AUC 0.9855
+Epoch 10/20 | loss 0.0089 | train AUC 0.9999 | val AUC 0.9856
+Epoch 11/20 | loss 0.0126 | train AUC 0.9999 | val AUC 0.9825
+Epoch 12/20 | loss 0.0034 | train AUC 1.0000 | val AUC 0.9867
+  → best saved (val AUC 0.9867)
+Epoch 13/20 | loss 0.0043 | train AUC 0.9999 | val AUC 0.9831
+Epoch 14/20 | loss 0.0089 | train AUC 0.9999 | val AUC 0.9748
+Epoch 15/20 | loss 0.0101 | train AUC 0.9999 | val AUC 0.9861
+Epoch 16/20 | loss 0.0045 | train AUC 1.0000 | val AUC 0.9843
+Epoch 17/20 | loss 0.0032 | train AUC 0.9999 | val AUC 0.9862
+Epoch 18/20 | loss 0.0041 | train AUC 1.0000 | val AUC 0.9817
+Epoch 19/20 | loss 0.0091 | train AUC 0.9999 | val AUC 0.9839
+Epoch 20/20 | loss 0.0050 | train AUC 1.0000 | val AUC 0.9823
+
+Best val AUC: 0.9867
+Checkpoint : /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/best_ldm_finetune.pt

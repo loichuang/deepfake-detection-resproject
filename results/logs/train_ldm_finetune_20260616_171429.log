@@ -1,0 +1,41 @@
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Device: cuda
+Régime : fine-tuning (encodeur VAE SD 1.4 entraînable)
+Building datasets from official FF++ splits...
+  train: 7190 samples | val: 1397 samples
+Loading TrainableVAEEncoder (SD 1.4)...
+  VAE params     : 83,653,863
+  MLP params     : 8,454,913
+Traceback (most recent call last):
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/train_ldm_finetune.py", line 174, in <module>
+    main()
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/train_ldm_finetune.py", line 120, in main
+    z      = encoder(imgs).flatten(1)   # (B, 16384)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/model.py", line 77, in forward
+    return self.vae.encode(x).latent_dist.mean * SCALING_FACTOR
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/diffusers/utils/accelerate_utils.py", line 46, in wrapper
+    return method(self, *args, **kwargs)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/diffusers/models/autoencoders/autoencoder_kl.py", line 260, in encode
+    h = self.encoder(x)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/diffusers/models/autoencoders/vae.py", line 175, in forward
+    sample = self.mid_block(sample)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/diffusers/models/unets/unet_2d_blocks.py", line 735, in forward
+    hidden_states = self.resnets[0](hidden_states, temb)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/diffusers/models/resnet.py", line 332, in forward
+    hidden_states = self.norm1(hidden_states)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/modules/normalization.py", line 273, in forward
+    return F.group_norm(
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/functional.py", line 2530, in group_norm
+    return torch.group_norm(input, num_groups, weight, bias, eps, torch.backends.cudnn.enabled)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 32.00 MiB (GPU 0; 10.76 GiB total capacity; 9.59 GiB already allocated; 16.44 MiB free; 9.68 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

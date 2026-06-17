@@ -1,0 +1,17 @@
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Device: cuda | encoder: ldm
+Building test split (test.json)...
+  test samples: 1400 (real: 700, fake: 700)
+Encoding test set with ldm encoder...
+  encoded 1400 samples -> latent shape (4, 64, 64)
+Loaded MLP from /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/best_ldm.pt
+
+==================================================
+TEST RESULTS — in-domain FF++ (Deepfakes, test.json)
+==================================================
+AUC        : 0.8695
+Accuracy   : 0.7614
+Precision  : 0.7153
+Recall     : 0.8686
+Confusion  : TP=608  TN=458  FP=242  FN=92

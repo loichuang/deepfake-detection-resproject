@@ -1,0 +1,50 @@
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+==========Using device: cuda==========
+Loading FFDS TEST Dataset...
+TEST Dataset loaded. Total frames: 840
+Loading Celeb-DF-v2 Dataset...
+Celeb-DF-v2 Dataset loaded. Total frames: 13058
+Loading LDM (Stable Diffusion v1.5)...
+Loading pipeline components...:   0%|          | 0/7 [00:00<?, ?it/s]Loading pipeline components...:  43%|████▎     | 3/7 [00:00<00:00, 21.25it/s]Loading pipeline components...:  86%|████████▌ | 6/7 [00:00<00:00,  6.36it/s]Loading pipeline components...: 100%|██████████| 7/7 [00:00<00:00,  8.28it/s]
+Loading weights from: /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_ldm_try1.pt
+
+STARTING FF++ IN-DOMAIN EVALUATION...
+  Scores sauvegardés : /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_try1_scores_ffpp.npy
+
+STARTING CELEB-DF CROSS-DATASET EVALUATION...
+Traceback (most recent call last):
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/wenyi/test_ldm_try1.py", line 147, in <module>
+    celeb_loss, celeb_acc, celeb_auc = evaluate_and_save(
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/wenyi/test_ldm_try1.py", line 86, in evaluate_and_save
+    for crop, label in dataloader:
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 633, in __next__
+    data = self._next_data()
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1345, in _next_data
+    return self._process_data(data)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1371, in _process_data
+    data.reraise()
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/_utils.py", line 644, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/wenyi/test_ldm_try1.py", line 68, in __getitem__
+    img_cropped = self.mtcnn(img)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/facenet_pytorch/models/mtcnn.py", line 258, in forward
+    batch_boxes, batch_probs, batch_points = self.detect(img, landmarks=True)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/facenet_pytorch/models/mtcnn.py", line 313, in detect
+    batch_boxes, batch_points = detect_face(
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/facenet_pytorch/models/utils/detect_face.py", line 41, in detect_face
+    imgs = torch.as_tensor(imgs.copy(), device=device)
+  File "/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/torch/cuda/__init__.py", line 235, in _lazy_init
+    raise RuntimeError(
+RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method
+

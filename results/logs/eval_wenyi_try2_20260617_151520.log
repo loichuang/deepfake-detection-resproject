@@ -1,0 +1,21 @@
+/medias/db/ImagingSecurity_misc/huangl/miniconda3/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+==========Using device: cuda==========
+Loading FFDS TEST Dataset...
+TEST Dataset loaded. Total frames: 840
+Loading Celeb-DF-v2 Dataset...
+Celeb-DF-v2 Dataset loaded. Total frames: 13058
+Loading LDM (Stable Diffusion v1.5)...
+Loading pipeline components...:   0%|          | 0/7 [00:00<?, ?it/s]Loading pipeline components...:  29%|██▊       | 2/7 [00:00<00:01,  4.42it/s]Loading pipeline components...:  57%|█████▋    | 4/7 [00:00<00:00,  7.04it/s]Loading pipeline components...:  71%|███████▏  | 5/7 [00:00<00:00,  6.22it/s]Loading pipeline components...: 100%|██████████| 7/7 [00:00<00:00,  8.39it/s]
+Loading weights from: /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_ldm_try2.pt
+
+STARTING FF++ IN-DOMAIN EVALUATION...
+  Scores sauvegardés : /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_try2_scores_ffpp.npy
+
+STARTING CELEB-DF CROSS-DATASET EVALUATION...
+  Scores sauvegardés : /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/wenyi_try2_scores_celeb.npy
+
+==========FINAL RESULTS (TRY 2)==========
+[FF++ In-Domain]  Loss: 0.5394 | Acc: 0.7131 | AUC: 0.7994
+[Celeb-DF Cross]  Loss: 0.6505 | Acc: 0.6333 | AUC: 0.6072
+=========================================

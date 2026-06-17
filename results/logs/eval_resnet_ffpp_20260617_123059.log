@@ -1,0 +1,15 @@
+Device: cuda | encoder: resnet
+Building test split (test.json)...
+  test samples: 1400 (real: 700, fake: 700)
+Encoding test set with resnet encoder...
+  encoded 1400 samples -> latent shape (2048,)
+Loaded MLP from /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/best_resnet.pt
+
+==================================================
+TEST RESULTS — in-domain FF++ (Deepfakes, test.json)
+==================================================
+AUC        : 0.7792
+Accuracy   : 0.6950
+Precision  : 0.6993
+Recall     : 0.6843
+Confusion  : TP=479  TN=494  FP=206  FN=221

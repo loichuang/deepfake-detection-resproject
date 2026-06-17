@@ -1,0 +1,16 @@
+Device: cuda | encoder: resnet
+Building Celeb-DF-v2 official test split...
+  test samples: 2590 (real: 890, fake: 1700)
+Encoding Celeb-DF test set with resnet encoder...
+  encoded 2590 samples -> latent shape (2048,)
+Loaded FF++-trained MLP from /medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/results/best_resnet.pt
+
+=======================================================
+CROSS-DATASET RESULTS — FF++ model on Celeb-DF-v2
+=======================================================
+AUC        : 0.5356
+Accuracy   : 0.4351
+Confusion  : TP=467  TN=660  FP=230  FN=1233
+
+Interpretation: compare this AUC to your in-domain FF++ test AUC.
+A large drop is the expected (and publishable) cross-dataset gap.

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/medias/db/ImagingSecurity_misc/huangl/deepfake-detection-resproject/src/wenyi/test_ldm_try1.py", line 24, in <module>
+    from facenet_pytorch import MTCNN
+ModuleNotFoundError: No module named 'facenet_pytorch'

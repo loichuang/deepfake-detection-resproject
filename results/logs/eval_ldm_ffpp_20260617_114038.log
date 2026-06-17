@@ -1,0 +1,2 @@
+  File "src/eval.py", line 1
+SyntaxError: Non-ASCII character '\xe2' in file src/eval.py on line 1, but no encoding declared; see http://python.org/dev/peps/pep-0263/ for details
