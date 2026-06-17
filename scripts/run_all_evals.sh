@@ -82,11 +82,14 @@ else
     echo "  ✓ best_ldm_finetune.pt existant — entraînement ignoré"
 fi
 
-# Wenyi checkpoints : on les suppose déjà présents (entraînés par Wenyi).
-# Si absent, décommenter les lignes ci-dessous.
-# [ ! -f "$RESULTS/wenyi_ldm_try1.pt" ] && run_logged "wenyi_try1_train" src/wenyi/train_ldm_try1.py
-# [ ! -f "$RESULTS/wenyi_ldm_try2.pt" ] && run_logged "wenyi_try2_train" src/wenyi/train_ldm_try2.py
-# [ ! -f "$RESULTS/wenyi_resnet_finetune.pt" ] && run_logged "wenyi_resnet_train" src/wenyi/train_resnet_finetune.py
+# Wenyi checkpoints : vérification de présence (pas de réentraînement automatique)
+for ckpt in wenyi_ldm_try1.pt wenyi_ldm_try2.pt wenyi_resnet_finetune.pt; do
+    if [ ! -f "$RESULTS/$ckpt" ]; then
+        echo "  ✗ $ckpt ABSENT — l'évaluation Wenyi correspondante sera ignorée"
+    else
+        echo "  ✓ $ckpt existant"
+    fi
+done
 
 echo ""
 echo "── PHASE 2 : Évaluations ──"
