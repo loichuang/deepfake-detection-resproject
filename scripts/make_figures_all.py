@@ -10,8 +10,8 @@ Prérequis : avoir lancé les scripts de test qui sauvegardent les .npy
 
 Outputs (dans results/) :
   roc_fig1_frozen.png        — Figure 1 : LDM figé + ResNet figé
-  roc_fig2_denoising.png     — Figure 2 : + Wenyi PNDM 1 step + DDIM 20 steps
-  roc_fig3_finetune.png      — Figure 3 : + LDM fine-tuné + Wenyi ResNet FT
+  roc_fig2_finetune.png      — Figure 2 : + LDM fine-tuné + Wenyi ResNet FT
+  roc_fig3_denoising.png     — Figure 3 : + Wenyi PNDM 1 step + DDIM 20 steps
   auc_bars_all.png           — Bar chart 6 modèles avec IC 95 %
   comparison_all.txt         — Tableau texte
 
@@ -55,10 +55,13 @@ MODELS = {
 }
 
 # Groupes progressifs pour les 3 figures
+# Figure 1 : Frozen
+# Figure 2 : Frozen + Unfrozen (fine-tuning)
+# Figure 3 : Frozen + Unfrozen + Denoising
 GROUPS = [
     ("frozen",    "Frozen encoders"),
+    ("finetune",  "Unfrozen (fine-tuning)"),
     ("denoising", "Denoising residual"),
-    ("finetune",  "Fine-tuning"),
 ]
 
 

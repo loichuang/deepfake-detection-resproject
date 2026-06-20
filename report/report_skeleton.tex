@@ -1,0 +1,137 @@
+\documentclass[10pt,twocolumn]{article}
+
+% ── Packages ──────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{microtype}
+
+% ── Title ─────────────────────────────────────────────────────
+\title{\textbf{Latent Representations of Diffusion Models\\for Deepfake Detection}\\
+  \large A Controlled Ablation Study}
+
+\author{
+  Loïc Huang\thanks{Loic.Huang@eurecom.fr} \and
+  Wenyi Zeng\thanks{Wenyi.Zeng@eurecom.fr} \\[0.3em]
+  \normalsize EURECOM, Sophia Antipolis, France \\
+  \normalsize Supervisors: Jean-Luc Dugelay \& Alexandre Libourel \\
+  \normalsize Semester Research Project, Spring 2026
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ── Abstract ──────────────────────────────────────────────────
+\begin{abstract}
+% TODO: 150-200 words summarising the problem, approach, key results.
+% H1 validated (0.87 vs 0.78), generalisation wall, fine-tuning trap,
+% denoising residual +8 pts cross-dataset.
+\end{abstract}
+
+% ── 1. Introduction ───────────────────────────────────────────
+\section{Introduction}
+% TODO:
+% - Context: deepfakes and societal stakes
+% - Detection challenge: generalisation across datasets
+% - Gap: existing methods (Wang, Ricker) rely on full diffusion pipeline
+% - Our question: is the VAE encoder alone sufficient? (H1)
+% - Contributions: controlled ablation, fine-tuning study, denoising residual
+% - Paper structure
+
+% ── 2. Related Work ───────────────────────────────────────────
+\section{Related Work}
+
+\subsection{Deepfake Detection}
+% TODO: CNN-based detectors, ViT-based, limitations on generalisation
+
+\subsection{Diffusion Models as Detectors}
+% TODO: Wang & Kalogeiton (ECCV 2024), Ricker et al. AEROBLADE (CVPR 2024)
+
+\subsection{Latent Representations}
+% TODO: VAE encoder properties, LAION pretraining, generative priors
+
+% ── 3. Method ─────────────────────────────────────────────────
+\section{Method}
+
+\subsection{Hypothesis}
+% TODO: H1 — frozen VAE encoder sufficient for detection
+
+\subsection{Controlled Comparison Pipeline}
+% TODO: LDM VAE encoder vs ResNet-50, shared MLP, same protocol
+
+\subsection{Variant A: Fine-tuning the Encoder}
+% TODO: Trainable VAE encoder vs trainable ResNet-50 backbone, same MLP head
+
+\subsection{Variant B: The Denoising Residual}
+% TODO: |z0 - z_hat0|, Try 1 (1-step), Try 2 (20-step), inspiration from Wang
+
+% ── 4. Experimental Setup ─────────────────────────────────────
+\section{Experimental Setup}
+
+\subsection{Datasets}
+% TODO: FaceForensics++ (DeepFakes, c23), train/val/test split
+%       Celeb-DF-v2 (cross-dataset benchmark, strictly unseen)
+
+\subsection{Evaluation Protocol}
+% TODO: AUROC, video-level, 5 frames per video
+%       95% bootstrap CI, 2000 iterations, cluster resampling
+
+\subsection{Implementation Details}
+% TODO: SD 1.4 VAE, ResNet-50 ImageNet1K-V2, MLP architecture,
+%       learning rates, batch size, epochs, hardware
+
+% ── 5. Results ────────────────────────────────────────────────
+\section{Results}
+
+\subsection{Frozen Encoders (H1)}
+% TODO: Table — LDM 0.87 vs ResNet 0.78 FF++, both ~0.52 Celeb-DF
+%       Confidence intervals, H1 validated in-domain
+
+\subsection{Fine-tuning Results}
+% TODO: Table — LDM FT 0.98/0.50, ResNet FT 0.97/0.70
+%       The Specialisation Trap
+
+\subsection{Denoising Residual}
+% TODO: Table — Try1 0.56/0.50, Try2 0.79/0.60, Wang ref 0.70
+%       Effect of reconstruction depth
+
+% ── 6. Analysis ───────────────────────────────────────────────
+\section{Analysis and Discussion}
+
+\subsection{Why Does the LDM Encoder Generalise Better In-Domain?}
+% TODO: Generative prior, LAION pretraining, richer feature space
+
+\subsection{The Specialisation Trap}
+% TODO: LDM FT overfits FF++ latent patterns, loses generative prior
+%       ResNet discriminative bias more transferable
+
+\subsection{Limits of the Denoising Residual}
+% TODO: Gap vs Wang: |z0-z_hat0| vs multi-step eps_theta
+%       Compute cost of Try 2
+
+% ── 7. Conclusion ─────────────────────────────────────────────
+\section{Conclusion}
+% TODO: 4 key takeaways, future work (LoRA, training on all FF++ manipulations)
+
+% ── References ────────────────────────────────────────────────
+\bibliographystyle{plain}
+\bibliography{references}
+
+% Manually if no .bib file yet:
+% \begin{thebibliography}{9}
+% \bibitem{wang2024} Wang \& Kalogeiton, ECCV 2024.
+% \bibitem{ricker2024} Ricker et al., CVPR 2024.
+% \bibitem{rossler2019} Rössler et al., FaceForensics++, ICCV 2019.
+% \bibitem{li2020} Li et al., Celeb-DF, CVPR 2020.
+% \end{thebibliography}
+
+\end{document}
